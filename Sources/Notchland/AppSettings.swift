@@ -116,6 +116,10 @@ final class AppSettings {
     var clipboardScreenshots = AppSettings.value("clipboardScreenshots", true) {
         didSet { save("clipboardScreenshots", clipboardScreenshots) }
     }
+    /// Kaydedilen ekran görüntüsü panoya da konsun; ⌘V ile doğrudan yapıştırılabilsin.
+    var screenshotToPasteboard = AppSettings.value("screenshotToPasteboard", true) {
+        didSet { save("screenshotToPasteboard", screenshotToPasteboard) }
+    }
     /// Senkron sözleri ileri (+) veya geri (−) kaydırır (saniye).
     var lyricsOffset = AppSettings.value("lyricsOffset", 0.0) { didSet { save("lyricsOffset", lyricsOffset) } }
     /// Açık notch'un arka planı çalan parçanın kapak rengine bürünsün.

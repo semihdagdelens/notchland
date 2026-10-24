@@ -134,11 +134,13 @@ final class ClipboardStore {
             else { return }
             DispatchQueue.main.async {
                 guard let self, !isKnown(self) else { return }
-                self.insert(Item(
+                let item = Item(
                     id: image.id, kind: .image, filePaths: [url.path], imageFile: image.fileName, date: Date(),
                     sourceBundleID: "com.apple.screenshot.launcher",
                     pixelWidth: image.width, pixelHeight: image.height, isScreenshot: true
-                ))
+                )
+                self.insert(item)
+                if AppSettings.shared.screenshotToPasteboard { self.copy(item, paste: false) }
             }
         }
     }

@@ -208,6 +208,8 @@ private struct ClipboardMusicSettings: View {
                 .disabled(!settings.clipboardEnabled)
                 Toggle("Ekran görüntülerini de ekle", isOn: $settings.clipboardScreenshots)
                     .disabled(!settings.clipboardEnabled)
+                Toggle("Ekran görüntüsünü panoya kopyala", isOn: $settings.screenshotToPasteboard)
+                    .disabled(!settings.clipboardEnabled || !settings.clipboardScreenshots)
             }
 
             Section {
