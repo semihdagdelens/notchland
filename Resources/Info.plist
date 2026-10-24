@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>UstBar</string>
+    <key>CFBundleDisplayName</key>
+    <string>UstBar</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.best.ustbar</string>
+    <key>CFBundleExecutable</key>
+    <string>UstBar</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+    <key>LSUIElement</key>
+    <true/>
+    <key>NSCalendarsFullAccessUsageDescription</key>
+    <string>UstBar, günün etkinliklerini notch'ta göstermek ve yaklaşan etkinlikleri hatırlatmak için takviminizi okur.</string>
+    <key>NSCalendarsUsageDescription</key>
+    <string>UstBar, günün etkinliklerini notch'ta göstermek için takviminizi okur.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>UstBar, kısayolla başlattığınız dikte sırasında konuşmanızı yazıya dökmek için mikrofonu kullanır.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>UstBar, Türkçe konuşmanızı canlı olarak yazıya dökmek için konuşma tanımayı kullanır.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>UstBar, bulunduğunuz yerin hava durumunu göstermek için yaklaşık konumunuzu kullanır.</string>
+    <key>NSLocationUsageDescription</key>
+    <string>UstBar, bulunduğunuz yerin hava durumunu göstermek için yaklaşık konumunuzu kullanır.</string>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>UstBar, kulaklığınız bağlandığında pil seviyesini notch'ta göstermek için Bluetooth cihazlarını okur.</string>
+    <key>NSRemindersFullAccessUsageDescription</key>
+    <string>UstBar, hatırlatıcılarınızı notch'ta listelemek, eklemek ve tamamlamak için Hatırlatıcılar'a erişir.</string>
+    <key>NSRemindersUsageDescription</key>
+    <string>UstBar, hatırlatıcılarınızı notch'ta listelemek için Hatırlatıcılar'a erişir.</string>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>UstBar, hızlı notlarınızı Notlar uygulamasındaki “UstBar” klasörüyle eşitlemek için Notlar'ı denetler.</string>
+    <key>NSDesktopFolderUsageDescription</key>
+    <string>UstBar, Masaüstüne kaydedilen ekran görüntülerini pano geçmişine eklemek için bu klasöre erişir.</string>
+    <key>NSDocumentsFolderUsageDescription</key>
+    <string>UstBar, ekran görüntüleriniz Belgeler'e kaydediliyorsa onları pano geçmişine eklemek için bu klasöre erişir.</string>
+    <key>NSDownloadsFolderUsageDescription</key>
+    <string>UstBar, ekran görüntüleriniz İndirilenler'e kaydediliyorsa onları pano geçmişine eklemek için bu klasöre erişir.</string>
+</dict>
+</plist>
