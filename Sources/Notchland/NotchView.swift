@@ -218,14 +218,27 @@ private struct TabButton: View {
     let symbol: String
     let isSelected: Bool
     let action: () -> Void
+    @State private var hoverSelect: Task<Void, Never>?
 
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(isSelected ? .white : .white.opacity(0.4))
+                .padding(4)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .padding(-4)
+        /// Üzerine gelince sekme açılır; fare sekmelerin üzerinden geçerken her birini açmasın diye kısa bekler.
+        .onHover { hovering in
+            hoverSelect?.cancel()
+            guard hovering else { return }
+            hoverSelect = Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(120))
+                if !Task.isCancelled { action() }
+            }
+        }
     }
 }
 
