@@ -331,7 +331,8 @@ final class NotchWindowController {
             }
             return
         case .leftMouseDragged:
-            if NSPasteboard(name: .drag).changeCount != dragChangeCountAtMouseDown {
+            // Pano sayacı her okunuşta pano sunucusuna gider; sürükleme anlaşıldıktan sonra sorma.
+            if !state.isDraggingContent, NSPasteboard(name: .drag).changeCount != dragChangeCountAtMouseDown {
                 state.isDraggingContent = true
             }
         default:

@@ -44,39 +44,54 @@ private struct SyncedLyrics: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.2)) { context in
             let time = track.elapsed(at: context.date) + AppSettings.shared.lyricsOffset
-            let current = LyricsService.currentIndex(in: lines, at: time)
-            ScrollViewReader { proxy in
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        ForEach(lines) { line in
-                            let isCurrent = line.id == current
-                            Text(line.text)
-                                .font(.system(size: isCurrent ? 15 : 13, weight: isCurrent ? .bold : .medium))
-                                .foregroundStyle(isCurrent ? Color.white : Color.white.opacity(0.35))
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .contentShape(Rectangle())
-                                // Satıra tıklayınca o ana atla.
-                                .onTapGesture { if let time = line.time { media.seek(to: time) } }
-                                .id(line.id)
-                        }
+            SyncedLyricsList(lines: lines, current: LyricsService.currentIndex(in: lines, at: time), media: media)
+                .equatable()
+        }
+    }
+}
+
+/// Zaman çizelgesi saniyede 5 kez işler; liste yalnızca vurgulanan satır değişince yeniden kurulur.
+private struct SyncedLyricsList: View, Equatable {
+    let lines: [LyricsService.Line]
+    let current: Int?
+    let media: MediaController
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.current == rhs.current && lhs.lines == rhs.lines && lhs.media === rhs.media
+    }
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(lines) { line in
+                        let isCurrent = line.id == current
+                        Text(line.text)
+                            .font(.system(size: isCurrent ? 15 : 13, weight: isCurrent ? .bold : .medium))
+                            .foregroundStyle(isCurrent ? Color.white : Color.white.opacity(0.35))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                            // Satıra tıklayınca o ana atla.
+                            .onTapGesture { if let time = line.time { media.seek(to: time) } }
+                            .id(line.id)
                     }
-                    .padding(.vertical, 40)
-                    .animation(.easeOut(duration: 0.25), value: current)
                 }
-                .mask(
-                    LinearGradient(
-                        stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.25),
-                                .init(color: .black, location: 0.75), .init(color: .clear, location: 1)],
-                        startPoint: .top, endPoint: .bottom
-                    )
+                .padding(.vertical, 40)
+                .animation(.easeOut(duration: 0.25), value: current)
+            }
+            .mask(
+                LinearGradient(
+                    stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.25),
+                            .init(color: .black, location: 0.75), .init(color: .clear, location: 1)],
+                    startPoint: .top, endPoint: .bottom
                 )
-                .onChange(of: current) { _, index in
-                    guard let index else { return }
-                    withAnimation(.easeInOut(duration: 0.35)) { proxy.scrollTo(index, anchor: .center) }
-                }
-                .onAppear {
-                    if let current { proxy.scrollTo(current, anchor: .center) }
-                }
+            )
+            .onChange(of: current) { _, index in
+                guard let index else { return }
+                withAnimation(.easeInOut(duration: 0.35)) { proxy.scrollTo(index, anchor: .center) }
+            }
+            .onAppear {
+                if let current { proxy.scrollTo(current, anchor: .center) }
             }
         }
     }

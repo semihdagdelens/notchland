@@ -46,7 +46,9 @@ final class ClipboardStore {
 
     @ObservationIgnored private var lastChangeCount = NSPasteboard.general.changeCount
     @ObservationIgnored private var timer: Timer?
-    @ObservationIgnored private var imageCache: [UUID: NSImage] = [:]
+    /// Satırlarda 34 pt'lik önizleme gösterilir; tam boy görseller bellekte tutulmaz.
+    @ObservationIgnored private var thumbnailCache: [UUID: NSImage] = [:]
+    private static let thumbnailPixels = 96
 
     @ObservationIgnored private let directory: URL = {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -120,17 +122,25 @@ final class ClipboardStore {
 
     private func addScreenshot(at url: URL) {
         guard AppSettings.shared.clipboardEnabled, AppSettings.shared.clipboardScreenshots else { return }
-        guard !items.contains(where: { $0.isScreenshot == true && $0.filePaths?.first == url.path }) else { return }
-        guard let data = try? Data(contentsOf: url), data.count <= Self.maxImageBytes,
-              let rep = NSBitmapImageRep(data: data) else { return }
-        let id = UUID()
-        let fileName = id.uuidString + "." + (url.pathExtension.isEmpty ? "png" : url.pathExtension.lowercased())
-        guard (try? data.write(to: directory.appendingPathComponent(fileName))) != nil else { return }
-        insert(Item(
-            id: id, kind: .image, filePaths: [url.path], imageFile: fileName, date: Date(),
-            sourceBundleID: "com.apple.screenshot.launcher",
-            pixelWidth: rep.pixelsWide, pixelHeight: rep.pixelsHigh, isScreenshot: true
-        ))
+        let isKnown: (ClipboardStore) -> Bool = { store in
+            store.items.contains { $0.isScreenshot == true && $0.filePaths?.first == url.path }
+        }
+        guard !isKnown(self) else { return }
+        let directory = directory
+        let fileExtension = url.pathExtension.isEmpty ? "png" : url.pathExtension.lowercased()
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            guard let data = try? Data(contentsOf: url),
+                  let image = Self.storeImage(data, fileExtension: fileExtension, convertToPNG: false, in: directory)
+            else { return }
+            DispatchQueue.main.async {
+                guard let self, !isKnown(self) else { return }
+                self.insert(Item(
+                    id: image.id, kind: .image, filePaths: [url.path], imageFile: image.fileName, date: Date(),
+                    sourceBundleID: "com.apple.screenshot.launcher",
+                    pixelWidth: image.width, pixelHeight: image.height, isScreenshot: true
+                ))
+            }
+        }
     }
 
     // MARK: - Okuma
@@ -143,37 +153,53 @@ final class ClipboardStore {
 
         let types = Set((pasteboard.types ?? []).map(\.rawValue))
         guard types.isDisjoint(with: Self.ignoredTypes) else { return }
-        guard var item = Self.makeItem(from: pasteboard, directory: directory) else { return }
-        item.sourceBundleID = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
-        insert(item)
-    }
-
-    private static func makeItem(from pasteboard: NSPasteboard, directory: URL) -> Item? {
+        let source = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
         let now = Date()
+        // Finder dosya kopyalarken ikonun görselini de koyar; önce dosyalara bak.
         if let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL],
            !urls.isEmpty {
-            return Item(id: UUID(), kind: .files, filePaths: urls.map(\.path), date: now)
-        }
-        if pasteboard.availableType(from: [.png, .tiff]) != nil,
-           let image = NSImage(pasteboard: pasteboard),
-           let tiff = image.tiffRepresentation,
-           let rep = NSBitmapImageRep(data: tiff),
-           let png = rep.representation(using: .png, properties: [:]),
-           png.count <= maxImageBytes {
-            let id = UUID()
-            let fileName = id.uuidString + ".png"
-            guard (try? png.write(to: directory.appendingPathComponent(fileName))) != nil else { return nil }
-            return Item(id: id, kind: .image, imageFile: fileName, date: now,
-                        pixelWidth: rep.pixelsWide, pixelHeight: rep.pixelsHigh)
-        }
-        if let string = pasteboard.string(forType: .string),
-           !string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            insert(Item(id: UUID(), kind: .files, filePaths: urls.map(\.path), date: now, sourceBundleID: source))
+        } else if let png = pasteboard.data(forType: .png) {
+            addImage(png, isPNG: true, source: source)
+        } else if let tiff = pasteboard.data(forType: .tiff) {
+            addImage(tiff, isPNG: false, source: source)
+        } else if let string = pasteboard.string(forType: .string),
+                  !string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
             let isLink = !trimmed.contains(where: \.isWhitespace)
                 && URL(string: trimmed).map { ["http", "https"].contains($0.scheme?.lowercased() ?? "") } == true
-            return Item(id: UUID(), kind: isLink ? .link : .text, text: string, date: now)
+            insert(Item(id: UUID(), kind: isLink ? .link : .text, text: string, date: now, sourceBundleID: source))
         }
-        return nil
+    }
+
+    /// Görsel verisi pano değişmeden hemen okunur; PNG'ye çevirme ve yazma büyük görsellerde
+    /// yüzlerce ms sürebildiği için arka planda yapılır.
+    private func addImage(_ data: Data, isPNG: Bool, source: String?) {
+        let directory = directory
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            guard let image = Self.storeImage(data, fileExtension: "png", convertToPNG: !isPNG, in: directory)
+            else { return }
+            DispatchQueue.main.async {
+                self?.insert(Item(
+                    id: image.id, kind: .image, imageFile: image.fileName, date: Date(), sourceBundleID: source,
+                    pixelWidth: image.width, pixelHeight: image.height
+                ))
+            }
+        }
+    }
+
+    /// Görseli depolama klasörüne yazar; arka plan kuyruğunda çağrılır.
+    private static func storeImage(
+        _ data: Data, fileExtension: String, convertToPNG: Bool, in directory: URL
+    ) -> (id: UUID, fileName: String, width: Int, height: Int)? {
+        guard let rep = NSBitmapImageRep(data: data),
+              let stored = convertToPNG ? rep.representation(using: .png, properties: [:]) : data,
+              stored.count <= maxImageBytes
+        else { return nil }
+        let id = UUID()
+        let fileName = id.uuidString + "." + fileExtension
+        guard (try? stored.write(to: directory.appendingPathComponent(fileName))) != nil else { return nil }
+        return (id, fileName, rep.pixelsWide, rep.pixelsHigh)
     }
 
     private func insert(_ item: Item) {
@@ -231,16 +257,30 @@ final class ClipboardStore {
         save()
     }
 
+    /// Tam boy görsel (kopyalama ve sürükleme için); önbelleğe alınmaz.
     func image(for item: Item) -> NSImage? {
-        if let cached = imageCache[item.id] { return cached }
+        guard let file = item.imageFile else { return nil }
+        return NSImage(contentsOf: directory.appendingPathComponent(file))
+    }
+
+    /// Satır önizlemesi: görsel tam boy çözülmeden küçültülerek okunur.
+    func thumbnail(for item: Item) -> NSImage? {
+        if let cached = thumbnailCache[item.id] { return cached }
         guard let file = item.imageFile,
-              let image = NSImage(contentsOf: directory.appendingPathComponent(file)) else { return nil }
-        imageCache[item.id] = image
+              let source = CGImageSourceCreateWithURL(directory.appendingPathComponent(file) as CFURL, nil),
+              let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, [
+                  kCGImageSourceCreateThumbnailFromImageAlways: true,
+                  kCGImageSourceCreateThumbnailWithTransform: true,
+                  kCGImageSourceThumbnailMaxPixelSize: Self.thumbnailPixels,
+              ] as CFDictionary)
+        else { return nil }
+        let image = NSImage(cgImage: cgImage, size: .zero)
+        thumbnailCache[item.id] = image
         return image
     }
 
     private func deleteFiles(of item: Item) {
-        imageCache[item.id] = nil
+        thumbnailCache[item.id] = nil
         if let file = item.imageFile {
             try? FileManager.default.removeItem(at: directory.appendingPathComponent(file))
         }

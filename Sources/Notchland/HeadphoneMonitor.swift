@@ -73,7 +73,7 @@ final class HeadphoneMonitor {
         guard device.isConnected() else { return }
         let reading = Self.read(device)
         devices[address] = reading
-        if current?.address == address { current = reading }
+        if current?.address == address { setCurrent(reading) }
         if reading.hasBattery || attempt >= 8 {
             if announce { onConnect?(reading) }
             return
@@ -97,7 +97,12 @@ final class HeadphoneMonitor {
             guard let address = device.addressString, devices[address] != nil, device.isConnected() else { continue }
             devices[address] = Self.read(device)
         }
-        if let address = current?.address { current = devices[address] }
+        if let address = current?.address { setCurrent(devices[address]) }
+    }
+
+    /// Gözlem her atamada görünümü yeniler; pil seviyesi değişmediyse atama yapma.
+    private func setCurrent(_ device: Device?) {
+        if device != current { current = device }
     }
 
     // MARK: - Okuma

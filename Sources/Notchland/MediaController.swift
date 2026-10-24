@@ -57,7 +57,6 @@ final class MediaController {
 
     private var process: Process?
     private var stdinPipe: Pipe?
-    private var lineBuffer = Data()
     private var lastArtworkData: String?
     private var restartDelay: TimeInterval = 1
 
@@ -92,13 +91,17 @@ final class MediaController {
         task.standardOutput = stdout
         task.standardError = FileHandle.nullDevice
 
+        // Satırlar base64 kapakla yüzlerce KB olabilir; okuma kuyruğunda ayrıştırılır, ana kuyruğa yalnızca sonuç gider.
+        var lineBuffer = Data()
         stdout.fileHandleForReading.readabilityHandler = { [weak self] handle in
             let data = handle.availableData
             guard !data.isEmpty else {
                 handle.readabilityHandler = nil
                 return
             }
-            DispatchQueue.main.async { self?.consume(data) }
+            let payloads = Self.payloads(in: data, buffer: &lineBuffer)
+            guard !payloads.isEmpty else { return }
+            DispatchQueue.main.async { payloads.forEach { self?.handle(payload: $0) } }
         }
         task.terminationHandler = { [weak self] _ in
             DispatchQueue.main.async { self?.streamDidExit() }
@@ -145,7 +148,6 @@ final class MediaController {
         process = nil
         try? stdinPipe?.fileHandleForWriting.close()
         stdinPipe = nil
-        lineBuffer.removeAll()
         // Akış ölürse giderek artan aralıklarla yeniden dene.
         DispatchQueue.main.asyncAfter(deadline: .now() + restartDelay) { [weak self] in self?.start() }
         restartDelay = min(restartDelay * 2, 30)
@@ -153,20 +155,26 @@ final class MediaController {
 
     // MARK: - Ayrıştırma
 
-    private func consume(_ data: Data) {
-        lineBuffer.append(data)
-        while let newline = lineBuffer.firstIndex(of: UInt8(ascii: "\n")) {
-            let line = lineBuffer[lineBuffer.startIndex..<newline]
-            lineBuffer.removeSubrange(lineBuffer.startIndex...newline)
-            handle(line: Data(line))
+    /// Gelen parçayı satırlara böler ve tamamlanan satırların yüklerini döndürür.
+    /// Yeni satır yalnızca gelen parçada aranır; uzun satır parça parça gelirken baştan taranmaz.
+    private static func payloads(in data: Data, buffer: inout Data) -> [[String: Any]] {
+        var payloads: [[String: Any]] = []
+        var rest = data[...]
+        while let newline = rest.firstIndex(of: UInt8(ascii: "\n")) {
+            buffer.append(rest[rest.startIndex..<newline])
+            if let event = try? JSONSerialization.jsonObject(with: buffer) as? [String: Any],
+               event["type"] as? String == "data",
+               let payload = event["payload"] as? [String: Any] {
+                payloads.append(payload)
+            }
+            buffer.removeAll(keepingCapacity: true)
+            rest = rest[rest.index(after: newline)...]
         }
+        buffer.append(rest)
+        return payloads
     }
 
-    private func handle(line: Data) {
-        guard let event = try? JSONSerialization.jsonObject(with: line) as? [String: Any],
-              event["type"] as? String == "data",
-              let payload = event["payload"] as? [String: Any]
-        else { return }
+    private func handle(payload: [String: Any]) {
         restartDelay = 1
 
         guard let title = payload["title"] as? String, !title.isEmpty else {

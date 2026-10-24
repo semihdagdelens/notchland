@@ -9,7 +9,7 @@ final class ShelfStore {
         let url: URL
         var id: URL { url }
         var name: String { url.lastPathComponent }
-        var icon: NSImage { NSWorkspace.shared.icon(forFile: url.path) }
+        var icon: NSImage { FileIcon.icon(forFile: url.path) }
     }
 
     static let acceptedTypes: [UTType] = [.fileURL, .image, .plainText, .url]

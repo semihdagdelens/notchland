@@ -242,14 +242,14 @@ private struct ClipboardRow: View {
     @ViewBuilder private var thumbnail: some View {
         switch item.kind {
         case .image:
-            if let image = clipboard.image(for: item) {
+            if let image = clipboard.thumbnail(for: item) {
                 Image(nsImage: image).resizable().scaledToFill()
             } else {
                 iconTile("photo")
             }
         case .files:
             if let first = item.filePaths?.first {
-                Image(nsImage: NSWorkspace.shared.icon(forFile: first)).resizable().scaledToFit().padding(2)
+                Image(nsImage: FileIcon.icon(forFile: first)).resizable().scaledToFit().padding(2)
             } else {
                 iconTile("doc")
             }
