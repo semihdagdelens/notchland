@@ -313,12 +313,12 @@ final class NotchWindowController {
         case .leftMouseDown:
             dragChangeCountAtMouseDown = NSPasteboard(name: .drag).changeCount
             // Yazarken notch dışına tıklanırsa yazmayı bırak; notch fare çıkınca kapanabilsin.
-            if state.isEditingText, let panel, !Self.expandedRect(in: panel.frame).contains(NSEvent.mouseLocation) {
+            if state.isEditingText, let panel, !Self.containsInclusive(Self.expandedRect(in: panel.frame), NSEvent.mouseLocation) {
                 state.isEditingText = false
                 NotchPanel.releaseKeyFocus()
             }
             // Klavyeyle açılmış notch dışına tıklanınca kapanır.
-            if state.isKeyboardActive, let panel, !Self.expandedRect(in: panel.frame).contains(NSEvent.mouseLocation) {
+            if state.isKeyboardActive, let panel, !Self.containsInclusive(Self.expandedRect(in: panel.frame), NSEvent.mouseLocation) {
                 setExpanded(false)
             }
         case .leftMouseUp:
@@ -371,7 +371,7 @@ final class NotchWindowController {
             width: activeSize.width,
             height: activeSize.height
         )
-        let inside = activeRect.contains(mouse)
+        let inside = Self.containsInclusive(activeRect, mouse)
         let peeking = inside && !state.isExpanded
         if peeking != state.isHovering {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) { state.isHovering = peeking }
@@ -394,6 +394,12 @@ final class NotchWindowController {
             return
         }
         setExpanded(inside)
+    }
+
+    /// `NSRect.contains` üst kenarı (maxY) dışarıda sayar; fare ekranın en üstüne dayanınca
+    /// konumu tam maxY olduğundan notch kapanıyordu. Kenarları da içeride say.
+    private static func containsInclusive(_ rect: NSRect, _ point: NSPoint) -> Bool {
+        (rect.minX...rect.maxX).contains(point.x) && (rect.minY...rect.maxY).contains(point.y)
     }
 
     private static func expandedRect(in frame: NSRect) -> NSRect {

@@ -165,7 +165,8 @@ private struct TabBar: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            HStack(spacing: 14) {
+            // Tüm sekmeler açıkken düğmeler notch'un sol kulağına sığsın; taşarsa notch'un altına kayıyorlar.
+            HStack(spacing: 10) {
                 TabButton(symbol: "house.fill", isSelected: state.tab == .home) { state.select(.home) }
                 if state.isTabEnabled(.calendar) {
                     TabButton(symbol: "calendar", isSelected: state.tab == .calendar) { state.select(.calendar) }
