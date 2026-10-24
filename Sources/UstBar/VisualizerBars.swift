@@ -1,17 +1,19 @@
 import SwiftUI
 
-/// Çalarken yumuşakça dalgalanan süs çubukları; duraklatılınca alçalır.
+/// Çalarken parçanın ritmiyle oynayan çubuklar; ritim henüz bilinmiyorsa yumuşakça dalgalanır,
+/// duraklatılınca alçalır.
 struct VisualizerBars: View {
-    static let barCount = 5
+    static let barCount = RhythmRecording.bandCount
 
-    let isPlaying: Bool
+    let track: MediaController.Track
+    let source: VisualizerEngine
     var color: Color = .white
     var spacing: CGFloat = 2
 
     var body: some View {
         GeometryReader { proxy in
-            TimelineView(.animation(minimumInterval: 1 / 30, paused: !isPlaying)) { context in
-                bars(isPlaying ? Self.levels(at: context.date) : Self.restingLevels, in: proxy.size)
+            TimelineView(.animation(minimumInterval: 1 / 30, paused: !track.isPlaying)) { context in
+                bars(levels(at: context.date), in: proxy.size)
             }
         }
     }
@@ -27,6 +29,11 @@ struct VisualizerBars: View {
             }
         }
         .frame(width: size.width, height: size.height)
+    }
+
+    private func levels(at date: Date) -> [Double] {
+        guard track.isPlaying else { return Self.restingLevels }
+        return source.levels(for: track, at: date) ?? Self.levels(at: date)
     }
 
     private static let restingLevels = [Double](repeating: 0.15, count: barCount)

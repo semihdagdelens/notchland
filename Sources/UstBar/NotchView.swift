@@ -85,7 +85,7 @@ struct NotchView: View {
                         .transition(.blurFade(scale: 0.9))
                 } else if showsLiveActivity, let track = media.track {
                     LiveActivityView(
-                        track: track, tint: media.artworkColor,
+                        track: track, visualizer: media.visualizer, tint: media.artworkColor,
                         notchWidth: state.closedSize.width, notchHeight: state.closedSize.height
                     )
                     .transition(.blurFade(scale: 0.9))
@@ -275,7 +275,8 @@ private struct NowPlayingView: View {
                     Spacer(minLength: 0)
                     if AppSettings.shared.liveActivity {
                         VisualizerBars(
-                            isPlaying: track.isPlaying,
+                            track: track,
+                            source: media.visualizer,
                             color: Color(nsColor: media.artworkColor.map(LiveActivity.barColor) ?? .white)
                         )
                         .frame(width: 20, height: 14)

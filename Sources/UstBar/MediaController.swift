@@ -39,6 +39,7 @@ final class MediaController {
 
     private(set) var track: Track? {
         didSet {
+            visualizer.update(track)
             if track?.title != oldValue?.title || track?.artist != oldValue?.artist {
                 onTrackChange?(track)
             }
@@ -47,6 +48,9 @@ final class MediaController {
 
     /// Parça (başlık/sanatçı) değişince çağrılır.
     @ObservationIgnored var onTrackChange: ((Track?) -> Void)?
+
+    /// Ses dalgasının kaynağı (kayıtlı ritim ya da sistem sesi).
+    let visualizer = VisualizerEngine()
 
     /// Kapaktan çıkarılan baskın renk (notch arka planı için); kapak yoksa nil.
     private(set) var artworkColor: NSColor?

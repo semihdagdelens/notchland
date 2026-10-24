@@ -25,6 +25,7 @@ enum LiveActivity {
 
 struct LiveActivityView: View {
     let track: MediaController.Track
+    let visualizer: VisualizerEngine
     let tint: NSColor?
     let notchWidth: CGFloat
     let notchHeight: CGFloat
@@ -41,7 +42,8 @@ struct LiveActivityView: View {
                 .transition(.blurFade(scale: 0.8))
             Color.clear.frame(width: notchWidth)
             VisualizerBars(
-                isPlaying: track.isPlaying,
+                track: track,
+                source: visualizer,
                 color: Color(nsColor: tint.map(LiveActivity.barColor) ?? .white),
                 spacing: 2
             )

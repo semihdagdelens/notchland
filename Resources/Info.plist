@@ -26,6 +26,8 @@
     <string>UstBar, günün etkinliklerini notch'ta göstermek için takviminizi okur.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>UstBar, kısayolla başlattığınız dikte sırasında konuşmanızı yazıya dökmek için mikrofonu kullanır.</string>
+    <key>NSAudioCaptureUsageDescription</key>
+    <string>UstBar, ritmini henüz bilmediği şarkılarda ses dalgasını müziğe oturtmak için çalan sesi dinler. Ses kaydedilmez; yalnızca ritim bilgisi saklanır.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
     <string>UstBar, Türkçe konuşmanızı canlı olarak yazıya dökmek için konuşma tanımayı kullanır.</string>
     <key>NSLocationWhenInUseUsageDescription</key>

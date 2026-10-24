@@ -212,8 +212,14 @@ private struct ClipboardMusicSettings: View {
 
             Section {
                 Toggle("Çalarken notch'ta kapak ve ses dalgası", isOn: $settings.liveActivity)
+                Toggle("Yeni şarkıların ritmini sistem sesinden öğren", isOn: $settings.listenSystemAudio)
+                    .disabled(!settings.liveActivity)
+                RhythmFolderRow()
             } header: {
                 Text("Müzik")
+            } footer: {
+                Text("Bir şarkı ilk çaldığında sesi dinlenir ve ritmi klasöre kaydedilir; sonraki çalışlarda dinleme ve internet kullanılmaz. Kapalıysa dalga yapay olarak oynar.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
 
             Section {

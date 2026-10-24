@@ -124,6 +124,10 @@ final class AppSettings {
     }
     /// Çalarken kapalı notch'un yanlarında kapak ve ses dalgası.
     var liveActivity = AppSettings.value("liveActivity", true) { didSet { save("liveActivity", liveActivity) } }
+    /// Ritmi bilinmeyen şarkılarda sistem sesini dinleyip ritmi kaydet.
+    var listenSystemAudio = AppSettings.value("listenSystemAudio", true) {
+        didSet { save("listenSystemAudio", listenSystemAudio) }
+    }
 
     // MARK: Dikte
 
