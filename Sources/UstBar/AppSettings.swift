@@ -50,6 +50,7 @@ final class AppSettings {
     var showShelfTab = AppSettings.value("showShelfTab", true) { didSet { save("showShelfTab", showShelfTab) } }
     var showStatsTab = AppSettings.value("showStatsTab", true) { didSet { save("showStatsTab", showStatsTab) } }
     var showNotesTab = AppSettings.value("showNotesTab", true) { didSet { save("showNotesTab", showNotesTab) } }
+    var showCalculatorTab = AppSettings.value("showCalculatorTab", true) { didSet { save("showCalculatorTab", showCalculatorTab) } }
 
     // MARK: Göstergeler
 

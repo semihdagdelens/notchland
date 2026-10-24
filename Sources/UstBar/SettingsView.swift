@@ -79,6 +79,7 @@ private struct GeneralSettings: View {
                 Toggle("Pano geçmişi", isOn: $settings.showClipboardTab)
                 Toggle("Sistem istatistikleri", isOn: $settings.showStatsTab)
                 Toggle("Hatırlatıcılar ve notlar", isOn: $settings.showNotesTab)
+                Toggle("Hesap makinesi", isOn: $settings.showCalculatorTab)
                 Toggle("Dosya rafı", isOn: $settings.showShelfTab)
             }
         }

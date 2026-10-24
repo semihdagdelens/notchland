@@ -110,6 +110,8 @@ struct NotchView: View {
                                 StatsView(stats: stats)
                             case .notes:
                                 NotesTabView(state: state, reminders: reminders, notes: notes)
+                            case .calculator:
+                                CalculatorView()
                             case .shelf:
                                 ShelfView(state: state, shelf: shelf, isDropTargeted: isDropTargeted)
                             }
@@ -176,6 +178,9 @@ private struct TabBar: View {
                 }
                 if state.isTabEnabled(.notes) {
                     TabButton(symbol: "checklist", isSelected: state.tab == .notes) { state.select(.notes) }
+                }
+                if state.isTabEnabled(.calculator) {
+                    TabButton(symbol: "plus.forwardslash.minus", isSelected: state.tab == .calculator) { state.select(.calculator) }
                 }
                 if state.isTabEnabled(.shelf) {
                     TabButton(symbol: "tray.fill", isSelected: state.tab == .shelf) { state.select(.shelf) }

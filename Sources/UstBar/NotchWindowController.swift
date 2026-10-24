@@ -86,7 +86,7 @@ final class NotchWindowController {
         panel.contentView = NSHostingView(rootView: root)
         panel.allowsKeyFocus = { [weak self] in
             guard let self else { return false }
-            return self.state.isExpanded && self.state.tab == .notes
+            return self.state.isExpanded && (self.state.tab == .notes || self.state.tab == .calculator)
         }
         self.panel = panel
         reposition()
@@ -404,6 +404,7 @@ final class NotchState {
         case clipboard
         case stats
         case notes
+        case calculator
         case shelf
     }
 
@@ -435,6 +436,7 @@ final class NotchState {
         case .clipboard: return settings.showClipboardTab
         case .stats: return settings.showStatsTab
         case .notes: return settings.showNotesTab
+        case .calculator: return settings.showCalculatorTab
         case .shelf: return settings.showShelfTab
         }
     }
