@@ -442,14 +442,27 @@ final class NotchWindowController {
 
 @Observable
 final class NotchState {
+    /// Sıra, sekme çubuğunun ve klavyeyle gezinmenin sırasıdır: en sık kullanılan başta.
     enum Tab: Hashable, CaseIterable {
         case home
-        case calendar
         case clipboard
-        case stats
+        case shelf
+        case calendar
         case notes
         case calculator
-        case shelf
+        case stats
+
+        var symbol: String {
+            switch self {
+            case .home: "house.fill"
+            case .clipboard: "doc.on.clipboard.fill"
+            case .shelf: "tray.fill"
+            case .calendar: "calendar"
+            case .notes: "checklist"
+            case .calculator: "plus.forwardslash.minus"
+            case .stats: "gauge.with.dots.needle.50percent"
+            }
+        }
     }
 
     var isExpanded = false

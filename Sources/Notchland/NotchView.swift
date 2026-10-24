@@ -167,24 +167,8 @@ private struct TabBar: View {
         HStack(spacing: 0) {
             // Tüm sekmeler açıkken düğmeler notch'un sol kulağına sığsın; taşarsa notch'un altına kayıyorlar.
             HStack(spacing: 10) {
-                TabButton(symbol: "house.fill", isSelected: state.tab == .home) { state.select(.home) }
-                if state.isTabEnabled(.calendar) {
-                    TabButton(symbol: "calendar", isSelected: state.tab == .calendar) { state.select(.calendar) }
-                }
-                if state.isTabEnabled(.clipboard) {
-                    TabButton(symbol: "doc.on.clipboard.fill", isSelected: state.tab == .clipboard) { state.select(.clipboard) }
-                }
-                if state.isTabEnabled(.stats) {
-                    TabButton(symbol: "gauge.with.dots.needle.50percent", isSelected: state.tab == .stats) { state.select(.stats) }
-                }
-                if state.isTabEnabled(.notes) {
-                    TabButton(symbol: "checklist", isSelected: state.tab == .notes) { state.select(.notes) }
-                }
-                if state.isTabEnabled(.calculator) {
-                    TabButton(symbol: "plus.forwardslash.minus", isSelected: state.tab == .calculator) { state.select(.calculator) }
-                }
-                if state.isTabEnabled(.shelf) {
-                    TabButton(symbol: "tray.fill", isSelected: state.tab == .shelf) { state.select(.shelf) }
+                ForEach(state.enabledTabs, id: \.self) { tab in
+                    TabButton(symbol: tab.symbol, isSelected: state.tab == tab) { state.select(tab) }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
