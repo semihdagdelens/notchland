@@ -10,6 +10,8 @@
     <string>com.best.notchland</string>
     <key>CFBundleExecutable</key>
     <string>Notchland</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>

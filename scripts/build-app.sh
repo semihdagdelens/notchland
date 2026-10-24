@@ -11,6 +11,7 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/Notchland"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
+cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 cp -R Resources/MediaRemote "$APP/Contents/Resources/MediaRemote"
 
 # Kalıcı kimlik varsa onunla imzala (izinler derlemeler arasında korunur), yoksa ad-hoc.
