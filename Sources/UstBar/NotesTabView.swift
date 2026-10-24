@@ -6,15 +6,27 @@ struct NotesTabView: View {
     let reminders: RemindersService
     let notes: NotesService
 
+    /// Klavyeyle gezinmede ↓ ↑ ile seçilen eylem; Return onu başlatır.
+    enum Target { case newReminder, newNote }
+    @State private var target: Target?
+
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
-            RemindersColumn(state: state, reminders: reminders)
+            RemindersColumn(state: state, reminders: reminders, isTargeted: isTargeted(.newReminder))
                 .frame(maxWidth: .infinity)
             Rectangle()
                 .fill(Color.white.opacity(0.1))
                 .frame(width: 1)
-            NotesColumn(state: state, notes: notes)
+            NotesColumn(state: state, notes: notes, isTargeted: isTargeted(.newNote))
                 .frame(maxWidth: .infinity)
+        }
+        .onChange(of: state.keyCommand) { _, command in
+            let canAddReminder = reminders.access == .granted
+            switch command?.kind {
+            case .down: target = target == nil && canAddReminder ? .newReminder : .newNote
+            case .up: target = target == .newNote && canAddReminder ? .newReminder : nil
+            default: break
+            }
         }
         .onAppear {
             reminders.activate()
@@ -24,6 +36,24 @@ struct NotesTabView: View {
             state.isEditingText = false
             NotchPanel.releaseKeyFocus()
         }
+    }
+
+    private func isTargeted(_ candidate: Target) -> Bool {
+        state.isKeyboardActive && target == candidate
+    }
+}
+
+/// Klavyeyle seçilen öğenin çerçevesi.
+private struct TargetOutline: ViewModifier {
+    let isTargeted: Bool
+    let cornerRadius: CGFloat
+
+    func body(content: Content) -> some View {
+        content.overlay(
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .strokeBorder(Color.white.opacity(isTargeted ? 0.5 : 0), lineWidth: 1)
+                .animation(.easeOut(duration: 0.12), value: isTargeted)
+        )
     }
 }
 
@@ -53,6 +83,7 @@ private struct ColumnHeader<Accessory: View>: View {
 private struct RemindersColumn: View {
     let state: NotchState
     let reminders: RemindersService
+    let isTargeted: Bool
 
     @State private var draft = ""
     @FocusState private var isFocused: Bool
@@ -96,6 +127,7 @@ private struct RemindersColumn: View {
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(RoundedRectangle(cornerRadius: 6).fill(Color.white.opacity(0.08)))
+                    .modifier(TargetOutline(isTargeted: isTargeted && !isFocused, cornerRadius: 6))
                     .focused($isFocused)
                     .onSubmit {
                         reminders.add(draft)
@@ -109,6 +141,9 @@ private struct RemindersColumn: View {
             }
         }
         .onChange(of: isFocused) { _, focused in state.isEditingText = focused }
+        .onChange(of: state.keyCommand) { _, command in
+            if command?.kind == .enter && isTargeted { isFocused = true }
+        }
     }
 }
 
@@ -157,6 +192,7 @@ private struct ReminderRow: View {
 private struct NotesColumn: View {
     let state: NotchState
     let notes: NotesService
+    let isTargeted: Bool
 
     /// Düzenlenen not: `.some(nil)` yeni not, `.some(id)` mevcut not.
     @State private var editing: String?? = nil
@@ -172,6 +208,8 @@ private struct NotesColumn: View {
                     } label: {
                         Image(systemName: "square.and.pencil")
                             .font(.system(size: 12, weight: .semibold))
+                            .padding(3)
+                            .modifier(TargetOutline(isTargeted: isTargeted, cornerRadius: 5))
                     }
                     .buttonStyle(.plain)
                     .help("Yeni not")
@@ -207,6 +245,9 @@ private struct NotesColumn: View {
             }
         }
         .onChange(of: isFocused) { _, focused in state.isEditingText = focused }
+        .onChange(of: state.keyCommand) { _, command in
+            if command?.kind == .enter && isTargeted && editing == nil { begin(nil, text: "") }
+        }
     }
 
     private func editor(for id: String?) -> some View {

@@ -105,7 +105,7 @@ struct NotchView: View {
                             case .calendar:
                                 CalendarTabView(calendar: calendar, weather: weather)
                             case .clipboard:
-                                ClipboardView(clipboard: clipboard)
+                                ClipboardView(state: state, clipboard: clipboard)
                             case .stats:
                                 StatsView(stats: stats)
                             case .notes:
@@ -190,6 +190,13 @@ private struct TabBar: View {
             // Gerçek notch'un altında kalan bölge boş kalır.
             Color.clear.frame(width: closedWidth)
             HStack(spacing: 12) {
+                if state.isKeyboardActive {
+                    Image(systemName: "keyboard")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.45))
+                        .help("Klavyeyle gezinme: ← → sekmeler, Esc kapatır")
+                        .transition(.opacity)
+                }
                 if let device = headphones.current, let level = device.budsLevel {
                     HStack(spacing: 4) {
                         Text("%\(level)")

@@ -40,11 +40,41 @@ final class AppSettings {
         }
     }
 
+    enum NavigationHotKey: String, CaseIterable, Identifiable {
+        case off, controlOptionN, controlOptionDown, optionCommandN
+        var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .off: "Kapalı"
+            case .controlOptionN: "⌃⌥ N"
+            case .controlOptionDown: "⌃⌥ ↓"
+            case .optionCommandN: "⌥⌘ N"
+            }
+        }
+
+        /// Carbon tuş kodu ve değiştiricileri.
+        var combo: (keyCode: UInt32, modifiers: UInt32)? {
+            let n: UInt32 = 45, down: UInt32 = 125
+            let command: UInt32 = 1 << 8, option: UInt32 = 1 << 11, control: UInt32 = 1 << 12
+            switch self {
+            case .off: return nil
+            case .controlOptionN: return (n, control | option)
+            case .controlOptionDown: return (down, control | option)
+            case .optionCommandN: return (n, option | command)
+            }
+        }
+    }
+
     // MARK: Notch
 
     /// Fare notch'un üstünde bu kadar bekleyince açılır (saniye).
     var hoverDelay = AppSettings.value("hoverDelay", 0.0) { didSet { save("hoverDelay", hoverDelay) } }
     var hapticFeedback = AppSettings.value("hapticFeedback", false) { didSet { save("hapticFeedback", hapticFeedback) } }
+    /// Notch'u klavyeyle açıp sekmeler arasında gezdiren kısayol.
+    var navigationHotKey = NavigationHotKey(rawValue: AppSettings.value("navigationHotKey", "controlOptionN")) ?? .controlOptionN {
+        didSet { save("navigationHotKey", navigationHotKey.rawValue) }
+    }
     var showCalendarTab = AppSettings.value("showCalendarTab", true) { didSet { save("showCalendarTab", showCalendarTab) } }
     var showClipboardTab = AppSettings.value("showClipboardTab", true) { didSet { save("showClipboardTab", showClipboardTab) } }
     var showShelfTab = AppSettings.value("showShelfTab", true) { didSet { save("showShelfTab", showShelfTab) } }

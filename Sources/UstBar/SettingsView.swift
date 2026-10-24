@@ -74,6 +74,17 @@ private struct GeneralSettings: View {
                 Toggle("Açılırken titreşim (trackpad)", isOn: $settings.hapticFeedback)
             }
 
+            Section {
+                Picker("Kısayol", selection: $settings.navigationHotKey) {
+                    ForEach(AppSettings.NavigationHotKey.allCases) { Text($0.title).tag($0) }
+                }
+            } header: {
+                Text("Klavyeyle gezinme")
+            } footer: {
+                Text("Kısayol notch'u açar. ← → veya Tab ile sekme değiştir, ⌘1… ile sekmeye atla, Esc ile kapat. Ana sayfada Space oynat/duraklat, ⌘← ⌘→ önceki/sonraki parça, L şarkı sözleri. Panoda ↑ ↓ ile seç, Return yapıştırır, ⌘C kopyalar, ⌫ siler. Notlarda ↓ yeni hatırlatıcıyı, bir daha ↓ yeni notu seçer; Return başlatır.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
             Section("Sekmeler") {
                 Toggle("Takvim", isOn: $settings.showCalendarTab)
                 Toggle("Pano geçmişi", isOn: $settings.showClipboardTab)

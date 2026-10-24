@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Pano geçmişi: türe göre renklenen satırlar, görsel önizlemesi, boyut ve tür filtresi.
 struct ClipboardView: View {
+    let state: NotchState
     let clipboard: ClipboardStore
 
     enum Filter: CaseIterable {
@@ -39,6 +40,8 @@ struct ClipboardView: View {
     }
 
     @State private var filter: Filter = .all
+    /// Klavyeyle seçilen öğe; yoksa ilk öğe seçili sayılır.
+    @State private var selection: ClipboardStore.Item.ID?
 
     private var visibleItems: [ClipboardStore.Item] {
         clipboard.items.filter(filter.matches)
@@ -56,14 +59,49 @@ struct ClipboardView: View {
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ScrollView(.vertical, showsIndicators: false) {
-                    LazyVStack(spacing: 5) {
-                        ForEach(visibleItems) { item in
-                            ClipboardRow(item: item, clipboard: clipboard)
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical, showsIndicators: false) {
+                        LazyVStack(spacing: 5) {
+                            ForEach(visibleItems) { item in
+                                ClipboardRow(
+                                    item: item, clipboard: clipboard,
+                                    isSelected: state.isKeyboardActive && item.id == selectedItem?.id
+                                )
+                                .id(item.id)
+                            }
                         }
+                    }
+                    .onChange(of: selection) { _, id in
+                        guard let id else { return }
+                        withAnimation(.easeOut(duration: 0.15)) { proxy.scrollTo(id) }
                     }
                 }
             }
+        }
+        .onChange(of: state.keyCommand) { _, command in
+            if let command { perform(command.kind) }
+        }
+    }
+
+    private var selectedItem: ClipboardStore.Item? {
+        visibleItems.first { $0.id == selection } ?? visibleItems.first
+    }
+
+    /// Klavyeyle gezinme: ↑ ↓ seçer, Return yapıştırır, ⌘C kopyalar, ⌫ siler.
+    private func perform(_ command: NotchState.KeyCommand.Kind) {
+        let items = visibleItems
+        guard let current = selectedItem, let index = items.firstIndex(of: current) else { return }
+        switch command {
+        case .up, .down:
+            let next = min(max(index + (command == .down ? 1 : -1), 0), items.count - 1)
+            selection = items[next].id
+        case .enter, .copy:
+            // Önce notch kapanıp odak öndeki uygulamaya dönsün, sonra yapıştırılsın.
+            state.onClose?()
+            clipboard.copy(current, paste: command == .enter)
+        case .delete:
+            selection = items.indices.contains(index + 1) ? items[index + 1].id : (index > 0 ? items[index - 1].id : nil)
+            clipboard.remove(current)
         }
     }
 
@@ -111,8 +149,11 @@ struct ClipboardView: View {
 private struct ClipboardRow: View {
     let item: ClipboardStore.Item
     let clipboard: ClipboardStore
+    var isSelected = false
 
     @State private var isHovering = false
+
+    private var isHighlighted: Bool { isHovering || isSelected }
 
     var body: some View {
         HStack(spacing: 10) {
@@ -167,14 +208,14 @@ private struct ClipboardRow: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(
                     LinearGradient(
-                        colors: [tint.opacity(isHovering ? 0.32 : 0.22), tint.opacity(isHovering ? 0.14 : 0.08)],
+                        colors: [tint.opacity(isHighlighted ? 0.32 : 0.22), tint.opacity(isHighlighted ? 0.14 : 0.08)],
                         startPoint: .leading, endPoint: .trailing
                     )
                 )
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(Color.white.opacity(isHovering ? 0.14 : 0.06), lineWidth: 1)
+                .strokeBorder(Color.white.opacity(isSelected ? 0.35 : isHovering ? 0.14 : 0.06), lineWidth: 1)
         )
         .contentShape(Rectangle())
         .onHover { hovering in

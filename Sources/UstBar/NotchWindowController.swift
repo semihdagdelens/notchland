@@ -25,13 +25,16 @@ final class NotchPanel: NSPanel {
     /// yazı yazılabilen sekmede (notlar) bir metin alanına tıklanınca panel odak alır.
     var allowsKeyFocus: () -> Bool = { false }
 
+    /// Klavyeyle gezinirken odak, sekme değişse de panelde kalır.
+    var holdsKeyFocus: () -> Bool = { false }
+
     override var canBecomeKey: Bool { allowsKeyFocus() }
     override var canBecomeMain: Bool { false }
 
     /// Klavye odağını öndeki uygulamaya geri verir. Panel uygulamayı etkinleştirmediği için
     /// kısa bir an gizleyip göstermek, odağın etkin uygulamanın penceresine dönmesini sağlar.
     static func releaseKeyFocus() {
-        for case let panel as NotchPanel in NSApp.windows where panel.isKeyWindow {
+        for case let panel as NotchPanel in NSApp.windows where panel.isKeyWindow && !panel.holdsKeyFocus() {
             panel.orderOut(nil)
             panel.orderFrontRegardless()
         }
@@ -65,6 +68,7 @@ final class NotchWindowController {
     private let notes = NotesService()
     private let notificationMirror = NotificationMirror()
     private let hotKey = GlobalHotKey()
+    private lazy var keyboard = KeyboardNavigator(state: state, media: media)
     private var panel: NotchPanel?
     private var mouseMonitors: [Any] = []
     private let settings = AppSettings.shared
@@ -86,8 +90,10 @@ final class NotchWindowController {
         panel.contentView = NSHostingView(rootView: root)
         panel.allowsKeyFocus = { [weak self] in
             guard let self else { return false }
-            return self.state.isExpanded && (self.state.tab == .notes || self.state.tab == .calculator)
+            return self.state.isExpanded
+                && (self.state.isKeyboardActive || self.state.tab == .notes || self.state.tab == .calculator)
         }
+        panel.holdsKeyFocus = { [weak self] in self?.state.isKeyboardActive ?? false }
         self.panel = panel
         reposition()
         panel.orderFrontRegardless()
@@ -101,6 +107,7 @@ final class NotchWindowController {
         weather.start()
         clipboard.start()
         startDictation()
+        startKeyboardNavigation()
 
         headphones.onConnect = { [weak self] device in
             guard self?.settings.headphoneHUD == true else { return }
@@ -176,6 +183,29 @@ final class NotchWindowController {
             }
         }
         return true
+    }
+
+    // MARK: - Klavyeyle gezinme
+
+    private func startKeyboardNavigation() {
+        keyboard.onToggle = { [weak self] in self?.toggleKeyboardNavigation() }
+        keyboard.onClose = { [weak self] in self?.setExpanded(false) }
+        state.onClose = { [weak self] in self?.setExpanded(false) }
+        keyboard.start()
+    }
+
+    /// Notch'u açıp paneli klavye odağına alır; klavye modundaysa kapatır.
+    private func toggleKeyboardNavigation() {
+        guard let panel, !dictation.isActive else { return }
+        if state.isKeyboardActive && state.isExpanded {
+            setExpanded(false)
+            return
+        }
+        pendingExpand?.cancel()
+        pendingExpand = nil
+        state.isKeyboardActive = true
+        setExpanded(true)
+        panel.makeKeyAndOrderFront(nil)
     }
 
     // MARK: - Ses, parlaklık, pil
@@ -287,6 +317,10 @@ final class NotchWindowController {
                 state.isEditingText = false
                 NotchPanel.releaseKeyFocus()
             }
+            // Klavyeyle açılmış notch dışına tıklanınca kapanır.
+            if state.isKeyboardActive, let panel, !Self.expandedRect(in: panel.frame).contains(NSEvent.mouseLocation) {
+                setExpanded(false)
+            }
         case .leftMouseUp:
             // Bırakma alanları, bırakma işlenmeden kaybolmasın diye biraz bekle.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
@@ -314,6 +348,8 @@ final class NotchWindowController {
         if dictation.isActive { return }
         // Not yazılırken fare dışarı kaysa da açık kalır; dışarı tıklanınca kapanır.
         if state.isEditingText && state.isExpanded { return }
+        // Klavyeyle açıldıysa fare dışarıdayken de açık kalır; Esc, kısayol veya dışarı tıklama kapatır.
+        if state.isKeyboardActive && state.isExpanded { return }
 
         let mouse = NSEvent.mouseLocation
         let frame = panel.frame
@@ -378,6 +414,7 @@ final class NotchWindowController {
             }
         } else {
             state.isEditingText = false
+            state.isKeyboardActive = false
             NotchPanel.releaseKeyFocus()
         }
         // Açılış hafif sekerek, kapanış sekmeden ve biraz daha çabuk.
@@ -398,7 +435,7 @@ final class NotchWindowController {
 
 @Observable
 final class NotchState {
-    enum Tab: Hashable {
+    enum Tab: Hashable, CaseIterable {
         case home
         case calendar
         case clipboard
@@ -411,6 +448,12 @@ final class NotchState {
     var isExpanded = false
     /// Notlar sekmesinde bir metin alanı odakta (notch fare çıksa da açık kalır).
     var isEditingText = false
+    /// Notch kısayolla açıldı; panel klavye odağında, tuşlarla gezinilir.
+    var isKeyboardActive = false
+    /// Klavyeyle gezinmede içeriğe (pano listesi) iletilen son komut.
+    var keyCommand: KeyCommand?
+    /// Notch'u kapatır (ör. panodan Return ile yapıştırmadan önce).
+    @ObservationIgnored var onClose: (() -> Void)?
     /// Fare kapalı notch'un üzerinde (açılma gecikmesi sırasında hafif büyüme).
     var isHovering = false
     var closedSize = CGSize(width: 200, height: 32)
