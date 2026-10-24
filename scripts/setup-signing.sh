@@ -1,14 +1,14 @@
 #!/bin/zsh
-# Bir kez çalıştırılır: sadece bu Mac'te geçerli, kendinden imzalı "UstBar Dev" kod imzalama
-# kimliği oluşturur. Kimlik login anahtar zincirine değil, UstBar'a ayrılmış ayrı bir
+# Bir kez çalıştırılır: sadece bu Mac'te geçerli, kendinden imzalı "Notchland Dev" kod imzalama
+# kimliği oluşturur. Kimlik login anahtar zincirine değil, Notchland'e ayrılmış ayrı bir
 # anahtar zincirine konur; böylece codesign hiç parola sormaz. build-app.sh bunu görürse
 # onunla imzalar ve Erişilebilirlik izni derlemeler arasında korunur.
 set -euo pipefail
 
-NAME="UstBar Dev"
-KEYCHAIN="$HOME/Library/Keychains/ustbar-signing.keychain-db"
+NAME="Notchland Dev"
+KEYCHAIN="$HOME/Library/Keychains/notchland-signing.keychain-db"
 # Bu anahtar zinciri yalnızca yerel geliştirme sertifikasını tutar; parola build-app.sh ile ortak.
-KEYCHAIN_PASS="ustbar-dev"
+KEYCHAIN_PASS="notchland-dev"
 LOGIN="$HOME/Library/Keychains/login.keychain-db"
 
 # Önceki denemeden login anahtar zincirinde kalan kimliği temizle (codesign parola soruyordu).

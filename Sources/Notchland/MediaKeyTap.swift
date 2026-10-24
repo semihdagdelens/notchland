@@ -54,7 +54,7 @@ final class MediaKeyTap {
         tap = nil
         runLoopSource = nil
         swallowedKeys.removeAll()
-        NSLog("[UstBar] Erişilebilirlik izni kalktı; medya tuşları sisteme bırakıldı.")
+        NSLog("[Notchland] Erişilebilirlik izni kalktı; medya tuşları sisteme bırakıldı.")
     }
 
     private func install() {
@@ -73,7 +73,7 @@ final class MediaKeyTap {
             callback: callback,
             userInfo: Unmanaged.passUnretained(self).toOpaque()
         ) else {
-            NSLog("[UstBar] Event tap kurulamadı.")
+            NSLog("[Notchland] Event tap kurulamadı.")
             return
         }
         let source = CFMachPortCreateRunLoopSource(nil, port, 0)
@@ -81,7 +81,7 @@ final class MediaKeyTap {
         CGEvent.tapEnable(tap: port, enable: true)
         tap = port
         runLoopSource = source
-        NSLog("[UstBar] Medya tuşları yakalanıyor.")
+        NSLog("[Notchland] Medya tuşları yakalanıyor.")
     }
 
     private func handle(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {

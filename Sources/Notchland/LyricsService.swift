@@ -24,7 +24,7 @@ final class LyricsService {
     @ObservationIgnored private var task: Task<Void, Never>?
     @ObservationIgnored private var cache: [String: State] = [:]
 
-    private static let userAgent = "UstBar/0.1 (kişisel notch uygulaması)"
+    private static let userAgent = "Notchland/0.1 (kişisel notch uygulaması)"
 
     func update(for track: MediaController.Track?) {
         guard let track else {

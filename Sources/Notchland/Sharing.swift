@@ -19,7 +19,7 @@ enum Sharing {
     static func airDrop(_ urls: [URL]) {
         guard !urls.isEmpty, let service = NSSharingService(named: .sendViaAirDrop) else { return }
         guard service.canPerform(withItems: urls) else {
-            NSLog("[UstBar] AirDrop kullanılamıyor (Wi-Fi/Bluetooth kapalı olabilir).")
+            NSLog("[Notchland] AirDrop kullanılamıyor (Wi-Fi/Bluetooth kapalı olabilir).")
             return
         }
         service.delegate = delegate

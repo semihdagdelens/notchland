@@ -7,6 +7,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let permissionItem = NSMenuItem()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        LegacyMigration.run()
         notchController = NotchWindowController()
         notchController?.show()
         setupStatusItem()
@@ -21,7 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private func setupStatusItem() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        item.button?.image = NSImage(systemSymbolName: "capsule.fill", accessibilityDescription: "UstBar")
+        item.button?.image = NSImage(systemSymbolName: "capsule.fill", accessibilityDescription: "Notchland")
         let menu = NSMenu()
         menu.delegate = self
         permissionItem.target = self
@@ -32,7 +33,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         settingsItem.target = self
         menu.addItem(settingsItem)
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "UstBar'dan Çık", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Notchland'den Çık", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         item.menu = menu
         statusItem = item
     }

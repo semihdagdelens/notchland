@@ -24,7 +24,7 @@ final class GlobalHotKey {
         let hotKeyID = EventHotKeyID(signature: Self.signature, id: id)
         let status = RegisterEventHotKey(combo.keyCode, combo.modifiers, hotKeyID, GetApplicationEventTarget(), 0, &hotKeyRef)
         if status != noErr {
-            NSLog("[UstBar] Kısayol kaydedilemedi (başka bir uygulama kullanıyor olabilir): \(status)")
+            NSLog("[Notchland] Kısayol kaydedilemedi (başka bir uygulama kullanıyor olabilir): \(status)")
         }
     }
 

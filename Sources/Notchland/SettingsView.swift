@@ -13,7 +13,7 @@ final class SettingsWindowController {
         if window == nil {
             let hosting = NSHostingController(rootView: SettingsView(onWeatherChange: onWeatherChange))
             let window = NSWindow(contentViewController: hosting)
-            window.title = "UstBar Ayarları"
+            window.title = "Notchland Ayarları"
             window.styleMask = [.titled, .closable, .miniaturizable]
             window.isReleasedWhenClosed = false
             window.setContentSize(NSSize(width: 520, height: 460))

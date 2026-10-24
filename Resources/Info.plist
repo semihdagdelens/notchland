@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>UstBar</string>
+    <string>Notchland</string>
     <key>CFBundleDisplayName</key>
-    <string>UstBar</string>
+    <string>Notchland</string>
     <key>CFBundleIdentifier</key>
-    <string>com.best.ustbar</string>
+    <string>com.best.notchland</string>
     <key>CFBundleExecutable</key>
-    <string>UstBar</string>
+    <string>Notchland</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -21,32 +21,32 @@
     <key>LSUIElement</key>
     <true/>
     <key>NSCalendarsFullAccessUsageDescription</key>
-    <string>UstBar, günün etkinliklerini notch'ta göstermek ve yaklaşan etkinlikleri hatırlatmak için takviminizi okur.</string>
+    <string>Notchland, günün etkinliklerini notch'ta göstermek ve yaklaşan etkinlikleri hatırlatmak için takviminizi okur.</string>
     <key>NSCalendarsUsageDescription</key>
-    <string>UstBar, günün etkinliklerini notch'ta göstermek için takviminizi okur.</string>
+    <string>Notchland, günün etkinliklerini notch'ta göstermek için takviminizi okur.</string>
     <key>NSMicrophoneUsageDescription</key>
-    <string>UstBar, kısayolla başlattığınız dikte sırasında konuşmanızı yazıya dökmek için mikrofonu kullanır.</string>
+    <string>Notchland, kısayolla başlattığınız dikte sırasında konuşmanızı yazıya dökmek için mikrofonu kullanır.</string>
     <key>NSAudioCaptureUsageDescription</key>
-    <string>UstBar, ritmini henüz bilmediği şarkılarda ses dalgasını müziğe oturtmak için çalan sesi dinler. Ses kaydedilmez; yalnızca ritim bilgisi saklanır.</string>
+    <string>Notchland, ritmini henüz bilmediği şarkılarda ses dalgasını müziğe oturtmak için çalan sesi dinler. Ses kaydedilmez; yalnızca ritim bilgisi saklanır.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
-    <string>UstBar, Türkçe konuşmanızı canlı olarak yazıya dökmek için konuşma tanımayı kullanır.</string>
+    <string>Notchland, Türkçe konuşmanızı canlı olarak yazıya dökmek için konuşma tanımayı kullanır.</string>
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>UstBar, bulunduğunuz yerin hava durumunu göstermek için yaklaşık konumunuzu kullanır.</string>
+    <string>Notchland, bulunduğunuz yerin hava durumunu göstermek için yaklaşık konumunuzu kullanır.</string>
     <key>NSLocationUsageDescription</key>
-    <string>UstBar, bulunduğunuz yerin hava durumunu göstermek için yaklaşık konumunuzu kullanır.</string>
+    <string>Notchland, bulunduğunuz yerin hava durumunu göstermek için yaklaşık konumunuzu kullanır.</string>
     <key>NSBluetoothAlwaysUsageDescription</key>
-    <string>UstBar, kulaklığınız bağlandığında pil seviyesini notch'ta göstermek için Bluetooth cihazlarını okur.</string>
+    <string>Notchland, kulaklığınız bağlandığında pil seviyesini notch'ta göstermek için Bluetooth cihazlarını okur.</string>
     <key>NSRemindersFullAccessUsageDescription</key>
-    <string>UstBar, hatırlatıcılarınızı notch'ta listelemek, eklemek ve tamamlamak için Hatırlatıcılar'a erişir.</string>
+    <string>Notchland, hatırlatıcılarınızı notch'ta listelemek, eklemek ve tamamlamak için Hatırlatıcılar'a erişir.</string>
     <key>NSRemindersUsageDescription</key>
-    <string>UstBar, hatırlatıcılarınızı notch'ta listelemek için Hatırlatıcılar'a erişir.</string>
+    <string>Notchland, hatırlatıcılarınızı notch'ta listelemek için Hatırlatıcılar'a erişir.</string>
     <key>NSAppleEventsUsageDescription</key>
-    <string>UstBar, hızlı notlarınızı Notlar uygulamasındaki “UstBar” klasörüyle eşitlemek için Notlar'ı denetler.</string>
+    <string>Notchland, hızlı notlarınızı Notlar uygulamasındaki “Notchland” klasörüyle eşitlemek için Notlar'ı denetler.</string>
     <key>NSDesktopFolderUsageDescription</key>
-    <string>UstBar, Masaüstüne kaydedilen ekran görüntülerini pano geçmişine eklemek için bu klasöre erişir.</string>
+    <string>Notchland, Masaüstüne kaydedilen ekran görüntülerini pano geçmişine eklemek için bu klasöre erişir.</string>
     <key>NSDocumentsFolderUsageDescription</key>
-    <string>UstBar, ekran görüntüleriniz Belgeler'e kaydediliyorsa onları pano geçmişine eklemek için bu klasöre erişir.</string>
+    <string>Notchland, ekran görüntüleriniz Belgeler'e kaydediliyorsa onları pano geçmişine eklemek için bu klasöre erişir.</string>
     <key>NSDownloadsFolderUsageDescription</key>
-    <string>UstBar, ekran görüntüleriniz İndirilenler'e kaydediliyorsa onları pano geçmişine eklemek için bu klasöre erişir.</string>
+    <string>Notchland, ekran görüntüleriniz İndirilenler'e kaydediliyorsa onları pano geçmişine eklemek için bu klasöre erişir.</string>
 </dict>
 </plist>

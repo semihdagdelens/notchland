@@ -1,8 +1,8 @@
 import AppKit
 
-/// Notlar uygulamasındaki "UstBar" klasörüyle eşitlenir (yoksa oluşturur). Notlar'ın genel bir
+/// Notlar uygulamasındaki "Notchland" klasörüyle eşitlenir (yoksa oluşturur). Notlar'ın genel bir
 /// API'si olmadığından betik arayüzü (JavaScript for Automation, osascript) kullanılır;
-/// ilk kullanımda macOS "UstBar, Notlar'ı denetlemek istiyor" izni sorar.
+/// ilk kullanımda macOS "Notchland, Notlar'ı denetlemek istiyor" izni sorar.
 /// Notlar iCloud'daysa iPhone'daki Notlar'da da aynı klasörde görünür.
 @Observable
 final class NotesService {
@@ -21,14 +21,14 @@ final class NotesService {
         }
     }
 
-    static let folderName = "UstBar"
+    static let folderName = "Notchland"
 
     private(set) var notes: [Note] = []
     private(set) var isLoading = false
     /// Son işlem başarısızsa kullanıcıya gösterilecek açıklama.
     private(set) var error: String?
 
-    @ObservationIgnored private let queue = DispatchQueue(label: "ustbar.notes", qos: .userInitiated)
+    @ObservationIgnored private let queue = DispatchQueue(label: "notchland.notes", qos: .userInitiated)
 
     func refresh() {
         isLoading = notes.isEmpty
@@ -110,7 +110,7 @@ final class NotesService {
             if detail.contains("-1743") || detail.lowercased().contains("not authorized") {
                 return .failure(Failure(message: "Notlar izni yok: Sistem Ayarları › Gizlilik › Otomasyon"))
             }
-            NSLog("[UstBar] Notlar betiği başarısız: \(detail)")
+            NSLog("[Notchland] Notlar betiği başarısız: \(detail)")
             return .failure(Failure(message: "Notlar'a ulaşılamadı"))
         }
         return .success(String(data: data, encoding: .utf8) ?? "")
@@ -148,9 +148,11 @@ final class NotesService {
     // Betikler argümanları `argv` ile alır; metin betiğe gömülmediği için kaçış derdi yoktur.
 
     private static let folderLookup = """
-    function ustbarFolder(Notes, name) {
+    function appFolder(Notes, name) {
         const found = Notes.folders.whose({ name: name })();
         if (found.length > 0) return found[0];
+        const legacy = Notes.folders.whose({ name: '\(LegacyMigration.legacyName)' })();
+        if (legacy.length > 0) { legacy[0].name = name; return legacy[0]; }
         Notes.make({ new: 'folder', withProperties: { name: name } });
         return Notes.folders.whose({ name: name })()[0];
     }
@@ -159,7 +161,7 @@ final class NotesService {
     private static let listScript = folderLookup + """
     function run(argv) {
         const Notes = Application('Notes');
-        const notes = ustbarFolder(Notes, argv[0]).notes;
+        const notes = appFolder(Notes, argv[0]).notes;
         const ids = notes.id(), names = notes.name(), texts = notes.plaintext(), dates = notes.modificationDate();
         return JSON.stringify(ids.map((id, i) => ({ id: id, name: names[i], text: texts[i], modified: dates[i].getTime() })));
     }
@@ -168,7 +170,7 @@ final class NotesService {
     private static let createScript = folderLookup + """
     function run(argv) {
         const Notes = Application('Notes');
-        Notes.make({ new: 'note', at: ustbarFolder(Notes, argv[0]), withProperties: { body: argv[1] } });
+        Notes.make({ new: 'note', at: appFolder(Notes, argv[0]), withProperties: { body: argv[1] } });
         return 'ok';
     }
     """

@@ -21,7 +21,7 @@ final class ShelfStore {
     /// Dosyası olmayan içeriklerin kaydedildiği klasör.
     @ObservationIgnored private let storageDirectory: URL = {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        let dir = base.appendingPathComponent("UstBar/Shelf", isDirectory: true)
+        let dir = base.appendingPathComponent("Notchland/Shelf", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir
     }()
@@ -71,7 +71,7 @@ final class ShelfStore {
     /// Bırakılan içerikleri AirDrop ile gönderir (rafa eklemeden).
     @discardableResult
     func airDrop(_ providers: [NSItemProvider]) -> Bool {
-        let temp = FileManager.default.temporaryDirectory.appendingPathComponent("UstBarAirDrop", isDirectory: true)
+        let temp = FileManager.default.temporaryDirectory.appendingPathComponent("NotchlandAirDrop", isDirectory: true)
         try? FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
         return resolveURLs(from: providers, storingIn: temp) { urls in
             Sharing.airDrop(urls)

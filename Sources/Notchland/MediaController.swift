@@ -73,7 +73,7 @@ final class MediaController {
 
     func start() {
         guard process == nil, let paths = Self.adapterPaths else {
-            if Self.adapterPaths == nil { NSLog("[UstBar] MediaRemoteAdapter bulunamadı; medya bilgisi kapalı.") }
+            if Self.adapterPaths == nil { NSLog("[Notchland] MediaRemoteAdapter bulunamadı; medya bilgisi kapalı.") }
             return
         }
 
@@ -109,7 +109,7 @@ final class MediaController {
             process = task
             stdinPipe = stdin
         } catch {
-            NSLog("[UstBar] Medya akışı başlatılamadı: \(error.localizedDescription)")
+            NSLog("[Notchland] Medya akışı başlatılamadı: \(error.localizedDescription)")
         }
     }
 

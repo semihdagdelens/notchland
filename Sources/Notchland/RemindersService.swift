@@ -61,7 +61,7 @@ final class RemindersService {
             try store.save(reminder, commit: true)
             reload()
         } catch {
-            NSLog("[UstBar] Hatırlatıcı eklenemedi: \(error.localizedDescription)")
+            NSLog("[Notchland] Hatırlatıcı eklenemedi: \(error.localizedDescription)")
         }
     }
 

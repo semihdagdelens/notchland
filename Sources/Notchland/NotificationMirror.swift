@@ -179,9 +179,9 @@ final class NotificationMirror {
         return value as? String
     }
 
-    private static let debugLog = Logger(subsystem: "com.best.ustbar", category: "notifications")
+    private static let debugLog = Logger(subsystem: "com.best.notchland", category: "notifications")
 
-    /// `defaults write com.best.ustbar debugNotificationAX -bool true` ile ağacı günlüğe yazar.
+    /// `defaults write com.best.notchland debugNotificationAX -bool true` ile ağacı günlüğe yazar.
     private static func dump(_ element: AXUIElement, depth: Int) {
         guard depth < 12 else { return }
         let parts = [kAXRoleAttribute, kAXSubroleAttribute, kAXIdentifierAttribute, kAXDescriptionAttribute,

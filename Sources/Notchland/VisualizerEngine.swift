@@ -89,7 +89,7 @@ final class VisualizerEngine {
         pendingSilence = []
         anchor = nil
         guard tap.start(bundleID: bundleID, onFrame: { [weak self] in self?.receive($0, index: $1) }) else {
-            NSLog("[UstBar] Sistem sesi dinleyicisi kurulamadı; yapay dalgaya dönülüyor.")
+            NSLog("[Notchland] Sistem sesi dinleyicisi kurulamadı; yapay dalgaya dönülüyor.")
             return giveUpListening()
         }
         self.tap = tap
@@ -119,7 +119,7 @@ final class VisualizerEngine {
             silentFrames += 1
             pendingSilence.append(elapsed)
             if silentFrames > Self.permissionProbeFrames {
-                NSLog("[UstBar] Sistem sesinden hiç ses gelmiyor (izin verilmemiş olabilir); yapay dalgaya dönülüyor.")
+                NSLog("[Notchland] Sistem sesinden hiç ses gelmiyor (izin verilmemiş olabilir); yapay dalgaya dönülüyor.")
                 giveUpListening()
             }
             return

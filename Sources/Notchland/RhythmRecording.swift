@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Bir şarkının dinlenerek çıkarılmış ritmi: çalma konumuna göre saniyede 30 kare, kare başına bant başına bir bayt.
-/// `~/Library/Application Support/UstBar/Ritimler/Sanatçı - Şarkı.ritim` dosyasında durur;
+/// `~/Library/Application Support/Notchland/Ritimler/Sanatçı - Şarkı.ritim` dosyasında durur;
 /// dolu kareler bir daha dinlenmez.
 final class RhythmRecording {
     static let frameRate = 30.0
@@ -28,7 +28,7 @@ final class RhythmRecording {
 
     static var folder: URL {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("UstBar/Ritimler", isDirectory: true)
+            .appendingPathComponent("Notchland/Ritimler", isDirectory: true)
     }
 
     /// Kaydedilebilecek bir parça değilse nil.
@@ -115,7 +115,7 @@ final class RhythmRecording {
             try data.write(to: url, options: .atomic)
             isDirty = false
         } catch {
-            NSLog("[UstBar] Ritim kaydedilemedi: \(error.localizedDescription)")
+            NSLog("[Notchland] Ritim kaydedilemedi: \(error.localizedDescription)")
         }
     }
 

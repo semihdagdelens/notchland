@@ -2,12 +2,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "UstBar",
+    name: "Notchland",
     platforms: [.macOS(.v14)],
     targets: [
         .executableTarget(
-            name: "UstBar",
-            path: "Sources/UstBar"
+            name: "Notchland",
+            path: "Sources/Notchland"
         )
     ]
 )

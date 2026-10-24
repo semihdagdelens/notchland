@@ -14,7 +14,7 @@ final class SystemAudioTap {
     private var tapID = AudioObjectID(kAudioObjectUnknown)
     private var aggregateID = AudioObjectID(kAudioObjectUnknown)
     private var procID: AudioDeviceIOProcID?
-    private let queue = DispatchQueue(label: "UstBar.SystemAudioTap", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "Notchland.SystemAudioTap", qos: .userInitiated)
 
     /// `onFrame` ana iş parçacığında, bant başına dBFS ve karenin sıra numarasıyla çağrılır.
     /// Kareler sesin kendi zamanında tam 1/30 sn arayla üretilir; sıra numarası zaman ekseni olarak kullanılabilir.
@@ -33,7 +33,7 @@ final class SystemAudioTap {
         guard AudioHardwareCreateProcessTap(description, &tapID) == noErr else { return fail() }
 
         var aggregate: [String: Any] = [
-            kAudioAggregateDeviceNameKey: "UstBar Ritim",
+            kAudioAggregateDeviceNameKey: "Notchland Ritim",
             kAudioAggregateDeviceUIDKey: UUID().uuidString,
             kAudioAggregateDeviceIsPrivateKey: true,
             kAudioAggregateDeviceIsStackedKey: false,
