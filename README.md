@@ -10,6 +10,7 @@ SwiftUI + AppKit ile yazılmıştır, macOS 14 veya üstü gerekir.
 - Ses, parlaklık ve pil göstergeleri (sistem HUD'unun yerine), düşük pil uyarısı
 - Bluetooth kulaklık bağlanınca pil seviyeleri (AirPods için sol/sağ/kutu)
 - Canlı müzik etkinliği: solda kapak, sağda müziğin ritmine oturan ses dalgası
+- Işık şovu: müzik çalarken çentiğin çevresinde kapak renginde, basla birlikte atan ışık
 - Yaklaşan takvim etkinliği hatırlatması
 - Ekrana gelen bildirimlerin çentikte yansıtılması
 

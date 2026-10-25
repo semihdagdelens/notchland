@@ -137,6 +137,7 @@ struct NotchView: View {
                     .overlay { ArtworkTint(color: artworkTint, isVisible: state.isExpanded, shape: shape) }
                     .shadow(color: .black.opacity(isOpen ? 0.5 : 0), radius: 16, y: 6)
             }
+            .background { NotchGlow(shape: shape, media: media, isOpen: isOpen, isVisible: !dictation.isActive) }
             // Ses/parlaklık/pil baloncuğu: yerel x = 0, gövdenin sağ kenarına (omzun içine) oturur.
             .overlay(alignment: .topTrailing) {
                 HUDBubble(hud: state.hud, isExpanded: isOpen, notchHeight: state.closedSize.height)

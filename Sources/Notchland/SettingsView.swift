@@ -216,6 +216,7 @@ private struct ClipboardMusicSettings: View {
                 Toggle("Çalarken notch'ta kapak ve ses dalgası", isOn: $settings.liveActivity)
                 Toggle("Yeni şarkıların ritmini sistem sesinden öğren", isOn: $settings.listenSystemAudio)
                     .disabled(!settings.liveActivity)
+                Toggle("Notch'un çevresinde ritimle atan ışık şovu", isOn: $settings.lightShow)
                 RhythmFolderRow()
             } header: {
                 Text("Müzik")

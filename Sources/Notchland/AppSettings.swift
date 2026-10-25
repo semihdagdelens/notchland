@@ -130,6 +130,8 @@ final class AppSettings {
     }
     /// Çalarken kapalı notch'un yanlarında kapak ve ses dalgası.
     var liveActivity = AppSettings.value("liveActivity", true) { didSet { save("liveActivity", liveActivity) } }
+    /// Çalarken notch'un çevresinde kapak renginde, ritimle atan ışık.
+    var lightShow = AppSettings.value("lightShow", true) { didSet { save("lightShow", lightShow) } }
     /// Ritmi bilinmeyen şarkılarda sistem sesini dinleyip ritmi kaydet.
     var listenSystemAudio = AppSettings.value("listenSystemAudio", true) {
         didSet { save("listenSystemAudio", listenSystemAudio) }
