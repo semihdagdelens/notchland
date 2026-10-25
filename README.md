@@ -1,5 +1,9 @@
 # Notchland
 
+[![Notchland tanıtım videosu](docs/assets/poster.jpg)](https://semihdagdelens.github.io/notchland/)
+
+**[Ürün sayfası ve tanıtım videosu →](https://semihdagdelens.github.io/notchland/)**
+
 MacBook'un çentiğini (notch) etkileşimli bir panele dönüştüren macOS menü çubuğu uygulaması. Fareyi çentiğin üzerine getirince açılır; kapalıyken de ses, parlaklık, pil ve çalan müzik gibi bilgileri çentiğin iki yanında gösterir.
 
 SwiftUI + AppKit ile yazılmıştır, macOS 14 veya üstü gerekir.
