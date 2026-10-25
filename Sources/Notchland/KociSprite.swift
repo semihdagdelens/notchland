@@ -199,6 +199,8 @@ final class KociLayerView: NSView {
     var source: ((Date) -> (frame: KociSprite.Frame, bob: CGFloat, interval: TimeInterval))?
 
     private let pixel: CGFloat
+    /// AppKit görünümün kendi katmanını yeniden çizerken içeriğini ezer; görsel bu alt katmanda durur.
+    private let sprite = CALayer()
     private var shown: (frame: KociSprite.Frame, bob: CGFloat)?
     private var timer: Timer?
     private var interval: TimeInterval = 0
@@ -208,8 +210,15 @@ final class KociLayerView: NSView {
         super.init(frame: .zero)
         wantsLayer = true
         // Büyütürken yumuşatma olmasın; pikseller keskin kalsın.
-        layer?.magnificationFilter = .nearest
-        layer?.contentsGravity = .resize
+        sprite.magnificationFilter = .nearest
+        sprite.contentsGravity = .resize
+        sprite.actions = ["contents": NSNull(), "transform": NSNull(), "bounds": NSNull(), "position": NSNull()]
+        layer?.addSublayer(sprite)
+    }
+
+    override func layout() {
+        super.layout()
+        sprite.frame = bounds
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) kullanılmıyor") }
@@ -235,9 +244,9 @@ final class KociLayerView: NSView {
             shown = (frame, bob)
             CATransaction.begin()
             CATransaction.setDisableActions(true)
-            layer?.contents = KociSprite.image(frame)
+            sprite.contents = KociSprite.image(frame)
             // Katman y ekseni yukarı doğru; sıçrama (eksi) yukarı demek.
-            layer?.transform = CATransform3DMakeTranslation(0, -bob * pixel, 0)
+            sprite.transform = CATransform3DMakeTranslation(0, -bob * pixel, 0)
             CATransaction.commit()
         }
         guard nextInterval != interval else { return }
