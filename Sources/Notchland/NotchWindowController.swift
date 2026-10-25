@@ -450,6 +450,7 @@ final class NotchState {
         case calendar
         case notes
         case calculator
+        case wrapped
         case stats
 
         var symbol: String {
@@ -460,6 +461,7 @@ final class NotchState {
             case .calendar: "calendar"
             case .notes: "checklist"
             case .calculator: "plus.forwardslash.minus"
+            case .wrapped: "sparkles"
             case .stats: "gauge.with.dots.needle.50percent"
             }
         }
@@ -500,6 +502,7 @@ final class NotchState {
         case .stats: return settings.showStatsTab
         case .notes: return settings.showNotesTab
         case .calculator: return settings.showCalculatorTab
+        case .wrapped: return settings.showWrappedTab
         case .shelf: return settings.showShelfTab
         }
     }

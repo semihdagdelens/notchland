@@ -81,6 +81,7 @@ final class AppSettings {
     var showStatsTab = AppSettings.value("showStatsTab", true) { didSet { save("showStatsTab", showStatsTab) } }
     var showNotesTab = AppSettings.value("showNotesTab", true) { didSet { save("showNotesTab", showNotesTab) } }
     var showCalculatorTab = AppSettings.value("showCalculatorTab", true) { didSet { save("showCalculatorTab", showCalculatorTab) } }
+    var showWrappedTab = AppSettings.value("showWrappedTab", true) { didSet { save("showWrappedTab", showWrappedTab) } }
 
     // MARK: Göstergeler
 
@@ -130,6 +131,8 @@ final class AppSettings {
     }
     /// Çalarken kapalı notch'un yanlarında kapak ve ses dalgası.
     var liveActivity = AppSettings.value("liveActivity", true) { didSet { save("liveActivity", liveActivity) } }
+    /// Ne kadar, neyi dinlediğini kaydet (Wrapped sekmesi); yalnızca yerelde tutulur.
+    var listeningHistory = AppSettings.value("listeningHistory", true) { didSet { save("listeningHistory", listeningHistory) } }
     /// Çalarken notch'un çevresinde kapak renginde, ritimle atan ışık.
     var lightShow = AppSettings.value("lightShow", true) { didSet { save("lightShow", lightShow) } }
     /// Ritmi bilinmeyen şarkılarda sistem sesini dinleyip ritmi kaydet.

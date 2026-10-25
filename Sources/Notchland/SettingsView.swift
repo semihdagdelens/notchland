@@ -91,6 +91,7 @@ private struct GeneralSettings: View {
                 Toggle("Sistem istatistikleri", isOn: $settings.showStatsTab)
                 Toggle("Hatırlatıcılar ve notlar", isOn: $settings.showNotesTab)
                 Toggle("Hesap makinesi", isOn: $settings.showCalculatorTab)
+                Toggle("Dinleme özeti (Wrapped)", isOn: $settings.showWrappedTab)
                 Toggle("Dosya rafı", isOn: $settings.showShelfTab)
             }
         }
@@ -218,10 +219,12 @@ private struct ClipboardMusicSettings: View {
                     .disabled(!settings.liveActivity)
                 Toggle("Notch'un çevresinde ritimle atan ışık şovu", isOn: $settings.lightShow)
                 RhythmFolderRow()
+                Toggle("Ne dinlediğimi kaydet (Wrapped)", isOn: $settings.listeningHistory)
+                ListeningHistoryRow()
             } header: {
                 Text("Müzik")
             } footer: {
-                Text("Bir şarkı ilk çaldığında sesi dinlenir ve ritmi klasöre kaydedilir; sonraki çalışlarda dinleme ve internet kullanılmaz. Kapalıysa dalga yapay olarak oynar.")
+                Text("Bir şarkı ilk çaldığında sesi dinlenir ve ritmi klasöre kaydedilir; sonraki çalışlarda dinleme ve internet kullanılmaz. Kapalıysa dalga yapay olarak oynar. Dinleme geçmişi (şarkı adı, sanatçı, süre) yalnızca bu Mac'te tutulur.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 

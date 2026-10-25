@@ -40,6 +40,7 @@ final class MediaController {
     private(set) var track: Track? {
         didSet {
             visualizer.update(track)
+            history.update(track)
             if track?.title != oldValue?.title || track?.artist != oldValue?.artist {
                 onTrackChange?(track)
             }
@@ -51,6 +52,9 @@ final class MediaController {
 
     /// Ses dalgasının kaynağı (kayıtlı ritim ya da sistem sesi).
     let visualizer = VisualizerEngine()
+
+    /// Wrapped sekmesi için dinleme geçmişi.
+    let history = ListeningHistory()
 
     /// Kapaktan çıkarılan baskın renk (notch arka planı için); kapak yoksa nil.
     private(set) var artworkColor: NSColor?

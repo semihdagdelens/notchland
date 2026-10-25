@@ -21,6 +21,7 @@ SwiftUI + AppKit ile yazılmıştır, macOS 14 veya üstü gerekir.
 - **Sistem** — CPU, bellek, GPU, ağ ve disk kullanımı, küçük grafiklerle
 - **Notlar** — Hatırlatıcılar ile Notlar uygulamasındaki “Notchland” klasörüyle eşitlenen hızlı notlar
 - **Hesap makinesi** — geçmişli, klavyeyle de kullanılabilir
+- **Wrapped** — bugün, bu hafta, bu ay ve tüm zamanlarda ne kadar müzik dinlediğin; en çok dinlenen şarkılar ve sanatçılar, seri ve en çok dinlenen saat (yalnızca bu Mac'te tutulur)
 - **Raf** — çentiğe sürüklenen dosyalar için geçici raf; AirDrop'a bırakma alanı
 
 **Diğer**
@@ -62,7 +63,7 @@ Her özellik yalnızca gerektiğinde izin ister:
 
 ## Veriler ve ağ
 
-- Yerel veriler `~/Library/Application Support/Notchland/` altında durur (pano geçmişi, raf, şarkı ritimleri).
+- Yerel veriler `~/Library/Application Support/Notchland/` altında durur (pano geçmişi, raf, şarkı ritimleri, dinleme geçmişi).
 - Hava durumu için [Open-Meteo](https://open-meteo.com), şarkı sözleri için [LRCLIB](https://lrclib.net) kullanılır; ikisi de anahtar gerektirmez.
 
 ## Teşekkür
