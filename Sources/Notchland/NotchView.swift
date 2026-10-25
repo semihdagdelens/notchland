@@ -143,9 +143,9 @@ struct NotchView: View {
             // Koci kapalı notch'un alt kenarına tutunur; notch açılınca arkasına tırmanıp panele geçer.
             .background(alignment: .bottom) {
                 if AppSettings.shared.showKoci && !isOpen {
+                    // Alt kenarı notch'un alt kenarına oturur; kendi boyu kadar aşağı kaydırılınca yalnızca kolları içeride kalır.
                     KociHanging(koci: koci, media: media, battery: battery, isHovering: state.isHovering)
-                        .alignmentGuide(.bottom) { $0[.top] + KociHanging.tuckedRows * KociHanging.pixel }
-                        .offset(x: state.closedSize.width * 0.22)
+                        .offset(x: state.closedSize.width * 0.22, y: KociHanging.height - KociHanging.tuckedRows * KociHanging.pixel)
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }

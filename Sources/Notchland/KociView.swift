@@ -84,6 +84,7 @@ struct KociHanging: View {
     static let pixel: CGFloat = 2
     /// Kolların notch'un arkasında kalan satır sayısı.
     static let tuckedRows: CGFloat = 3
+    static var height: CGFloat { CGFloat(KociSprite.size(of: .hanging).rows) * pixel }
 
     let koci: Koci
     let media: MediaController
