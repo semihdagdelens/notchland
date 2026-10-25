@@ -13,6 +13,7 @@ SwiftUI + AppKit ile yazılmıştır, macOS 14 veya üstü gerekir.
 - Işık şovu: müzik çalarken çentiğin çevresinde kapak renginde, basla birlikte atan ışık
 - Yaklaşan takvim etkinliği hatırlatması
 - Ekrana gelen bildirimlerin çentikte yansıtılması
+- **Koci**: Kocinyo'nun yıldız gözlü kedisi, piksel hâliyle çentiğin altına tutunur; müzikte kafa sallar, pil azalınca ağlar, Mac ısınınca terler, gece uyur, şarj takılınca sevinir. Çalan bir şey yokken ana sayfada oturup konuşur, tıklanınca tepki verir.
 
 **Açık çentikte (sekmeler)**
 - **Ana sayfa** — Spotify, Music, tarayıcıdaki YouTube vb. için sistem genelinde medya bilgisi ve kontrolü, senkron şarkı sözleri ve yabancı sözlerin satır satır Türkçe çevirisi (macOS'un cihaz içi çevirisiyle), kapak rengine bürünen arka plan

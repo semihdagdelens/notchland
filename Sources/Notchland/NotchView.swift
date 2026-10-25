@@ -17,6 +17,7 @@ struct NotchView: View {
     let onDictationToggle: () -> Void
 
     @State private var isDropTargeted = false
+    @State private var koci = Koci()
 
     /// Notch açık mı (üzerine gelinerek veya dikte için).
     private var isOpen: Bool { state.isExpanded || dictation.isActive }
@@ -101,7 +102,7 @@ struct NotchView: View {
                             } else {
                             switch state.tab {
                             case .home:
-                                HomeContent(state: state, media: media, weather: weather, lyrics: lyrics)
+                                HomeContent(state: state, media: media, weather: weather, lyrics: lyrics, koci: koci, battery: battery)
                             case .calendar:
                                 CalendarTabView(calendar: calendar, weather: weather)
                             case .clipboard:
@@ -139,6 +140,15 @@ struct NotchView: View {
                     .overlay { ArtworkTint(color: artworkTint, isVisible: state.isExpanded, shape: shape) }
                     .shadow(color: .black.opacity(isOpen ? 0.5 : 0), radius: 16, y: 6)
             }
+            // Koci kapalı notch'un alt kenarına tutunur; notch açılınca arkasına tırmanıp panele geçer.
+            .background(alignment: .bottom) {
+                if AppSettings.shared.showKoci && !isOpen {
+                    KociHanging(koci: koci, media: media, battery: battery, isHovering: state.isHovering)
+                        .alignmentGuide(.bottom) { $0[.top] + KociHanging.tuckedRows * KociHanging.pixel }
+                        .offset(x: state.closedSize.width * 0.22)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
             .background { NotchGlow(shape: shape, media: media, isOpen: isOpen, isVisible: !dictation.isActive) }
             // Ses/parlaklık/pil baloncuğu: yerel x = 0, gövdenin sağ kenarına (omzun içine) oturur.
             .overlay(alignment: .topTrailing) {
@@ -153,6 +163,9 @@ struct NotchView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .onChange(of: battery.status?.isPluggedIn) { old, new in
+            if old == false && new == true { koci.react() }
+        }
         .onChange(of: isDropTargeted) { _, targeted in
             if targeted && state.isTabEnabled(.shelf) { state.select(.shelf) }
         }
@@ -236,6 +249,8 @@ private struct HomeContent: View {
     let media: MediaController
     let weather: WeatherService
     let lyrics: LyricsService
+    let koci: Koci
+    let battery: BatteryMonitor
 
     var body: some View {
         HStack(spacing: 16) {
@@ -245,6 +260,8 @@ private struct HomeContent: View {
                 LyricsView(track: track, lyrics: lyrics, media: media)
             } else if let track = media.track {
                 NowPlayingView(track: track, media: media, state: state, lyrics: lyrics)
+            } else if AppSettings.shared.showKoci {
+                KociCorner(koci: koci, media: media, battery: battery)
             } else {
                 Text("Çalan bir şey yok")
                     .foregroundStyle(.secondary)

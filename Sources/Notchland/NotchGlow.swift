@@ -16,7 +16,7 @@ struct NotchGlow<S: Shape>: View {
             if isVisible, AppSettings.shared.lightShow, let track = media.track, track.isPlaying {
                 let color = Color(nsColor: LiveActivity.barColor(media.artworkColor ?? Self.fallbackColor))
                 TimelineView(.animation(minimumInterval: 1 / 30)) { context in
-                    let energy = Self.energy(track: track, source: media.visualizer, at: context.date)
+                    let energy = media.visualizer.energy(for: track, at: context.date)
                     GeometryReader { proxy in
                         let size = proxy.size
                         // Açık panelin gölgesi ışığı bastırdığı için orada daha yaygın; panelin 32 pt'lik payını aşmaz.
@@ -38,11 +38,13 @@ struct NotchGlow<S: Shape>: View {
         }
         .allowsHitTesting(false)
     }
+}
 
+extension VisualizerEngine {
     /// 0…1 arası enerji: ağırlık bas bandında, biraz da genel seviyede.
     /// Ritim bilinmiyorsa (yapay dalga) dakikada ~117 vuruşluk yumuşak bir nabız.
-    private static func energy(track: MediaController.Track, source: VisualizerEngine, at date: Date) -> Double {
-        guard let levels = source.levels(for: track, at: date), !levels.isEmpty else {
+    func energy(for track: MediaController.Track, at date: Date) -> Double {
+        guard let levels = levels(for: track, at: date), !levels.isEmpty else {
             let beat = (sin(date.timeIntervalSinceReferenceDate * .pi * 2 * 1.95) + 1) / 2
             return 0.25 + 0.5 * pow(beat, 3)
         }

@@ -72,6 +72,7 @@ private struct GeneralSettings: View {
                     }
                 }
                 Toggle("Açılırken titreşim (trackpad)", isOn: $settings.hapticFeedback)
+                Toggle("Koci (notch'ta yaşayan piksel kedi)", isOn: $settings.showKoci)
             }
 
             Section {

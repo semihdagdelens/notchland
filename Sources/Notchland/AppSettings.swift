@@ -71,6 +71,8 @@ final class AppSettings {
     /// Fare notch'un üstünde bu kadar bekleyince açılır (saniye).
     var hoverDelay = AppSettings.value("hoverDelay", 0.0) { didSet { save("hoverDelay", hoverDelay) } }
     var hapticFeedback = AppSettings.value("hapticFeedback", false) { didSet { save("hapticFeedback", hapticFeedback) } }
+    /// Notch'ta yaşayan piksel kedi Koci.
+    var showKoci = AppSettings.value("showKoci", true) { didSet { save("showKoci", showKoci) } }
     /// Notch'u klavyeyle açıp sekmeler arasında gezdiren kısayol.
     var navigationHotKey = NavigationHotKey(rawValue: AppSettings.value("navigationHotKey", "controlOptionN")) ?? .controlOptionN {
         didSet { save("navigationHotKey", navigationHotKey.rawValue) }
