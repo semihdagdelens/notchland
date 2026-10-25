@@ -237,11 +237,11 @@ private struct HomeContent: View {
     var body: some View {
         HStack(spacing: 16) {
             if let track = media.track, state.showLyrics {
-                NowPlayingView(track: track, media: media, state: state)
+                NowPlayingView(track: track, media: media, state: state, lyrics: lyrics)
                     .frame(width: 250)
                 LyricsView(track: track, lyrics: lyrics, media: media)
             } else if let track = media.track {
-                NowPlayingView(track: track, media: media, state: state)
+                NowPlayingView(track: track, media: media, state: state, lyrics: lyrics)
             } else {
                 Text("Çalan bir şey yok")
                     .foregroundStyle(.secondary)
@@ -261,6 +261,16 @@ private struct NowPlayingView: View {
     let track: MediaController.Track
     let media: MediaController
     let state: NotchState
+    let lyrics: LyricsService
+
+    /// Sözler açıkken ve Türkçe değilken çeviri düğmesi görünür.
+    private var showsTranslateButton: Bool {
+        guard state.showLyrics, case .found = lyrics.state else { return false }
+        switch lyrics.translator.state {
+        case .notNeeded, .unsupported: return false
+        default: return true
+        }
+    }
 
     var body: some View {
         HStack(spacing: 14) {
@@ -297,6 +307,18 @@ private struct NowPlayingView: View {
                     }
                     .buttonStyle(.plain)
                     .help("Şarkı sözleri")
+                    if showsTranslateButton {
+                        Button {
+                            AppSettings.shared.translateLyrics.toggle()
+                        } label: {
+                            Image(systemName: "translate")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(AppSettings.shared.translateLyrics ? Color.white : Color.white.opacity(0.4))
+                        }
+                        .buttonStyle(.plain)
+                        .help("Türkçe çeviri")
+                        .transition(.opacity)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

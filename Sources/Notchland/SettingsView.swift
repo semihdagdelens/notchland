@@ -81,7 +81,7 @@ private struct GeneralSettings: View {
             } header: {
                 Text("Klavyeyle gezinme")
             } footer: {
-                Text("Kısayol notch'u açar. ← → veya Tab ile sekme değiştir, ⌘1… ile sekmeye atla, Esc ile kapat. Ana sayfada Space oynat/duraklat, ⌘← ⌘→ önceki/sonraki parça, L şarkı sözleri. Panoda ↑ ↓ ile seç, Return yapıştırır, ⌘C kopyalar, ⌫ siler. Notlarda ↓ yeni hatırlatıcıyı, bir daha ↓ yeni notu seçer; Return başlatır.")
+                Text("Kısayol notch'u açar. ← → veya Tab ile sekme değiştir, ⌘1… ile sekmeye atla, Esc ile kapat. Ana sayfada Space oynat/duraklat, ⌘← ⌘→ önceki/sonraki parça, L şarkı sözleri, T Türkçe çeviri. Panoda ↑ ↓ ile seç, Return yapıştırır, ⌘C kopyalar, ⌫ siler. Notlarda ↓ yeni hatırlatıcıyı, bir daha ↓ yeni notu seçer; Return başlatır.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
@@ -226,6 +226,7 @@ private struct ClipboardMusicSettings: View {
 
             Section {
                 Toggle("Arka planı kapak rengine göre boya", isOn: $settings.artworkBackground)
+                Toggle("Yabancı sözlerin Türkçe çevirisini göster", isOn: $settings.translateLyrics)
                 LabeledContent("Söz kaydırma") {
                     HStack {
                         Slider(value: $settings.lyricsOffset, in: -3...3, step: 0.25)
@@ -240,7 +241,7 @@ private struct ClipboardMusicSettings: View {
             } header: {
                 Text("Şarkı sözleri")
             } footer: {
-                Text("Sözler sesten önce geliyorsa eksiye, geride kalıyorsa artıya kaydır.")
+                Text("Sözler sesten önce geliyorsa eksiye, geride kalıyorsa artıya kaydır. Çeviri macOS'un cihaz içi çevirisiyle yapılır; dil paketi yoksa Dil ve Bölge ayarlarından indirilir.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }

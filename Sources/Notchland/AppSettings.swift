@@ -122,6 +122,8 @@ final class AppSettings {
     }
     /// Senkron sözleri ileri (+) veya geri (−) kaydırır (saniye).
     var lyricsOffset = AppSettings.value("lyricsOffset", 0.0) { didSet { save("lyricsOffset", lyricsOffset) } }
+    /// Yabancı sözlerin altında Türkçe çevirisi (cihaz içi çeviri).
+    var translateLyrics = AppSettings.value("translateLyrics", true) { didSet { save("translateLyrics", translateLyrics) } }
     /// Açık notch'un arka planı çalan parçanın kapak rengine bürünsün.
     var artworkBackground = AppSettings.value("artworkBackground", true) {
         didSet { save("artworkBackground", artworkBackground) }

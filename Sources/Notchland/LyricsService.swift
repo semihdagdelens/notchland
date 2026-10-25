@@ -18,7 +18,18 @@ final class LyricsService {
         case notFound
     }
 
-    private(set) var state: State = .idle
+    private(set) var state: State = .idle {
+        didSet {
+            if case let .found(lines, _) = state {
+                translator.update(key: currentKey, lines: lines)
+            } else {
+                translator.update(key: nil, lines: [])
+            }
+        }
+    }
+
+    /// Yabancı sözlerin Türkçe çevirisi.
+    let translator = LyricsTranslator()
 
     @ObservationIgnored private var currentKey: String?
     @ObservationIgnored private var task: Task<Void, Never>?

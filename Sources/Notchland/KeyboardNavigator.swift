@@ -92,6 +92,10 @@ final class KeyboardNavigator {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { state.showLyrics.toggle() }
                 return true
             }
+            if characters == "t" && flags.isDisjoint(with: [.command, .control, .option]) && state.showLyrics {
+                AppSettings.shared.translateLyrics.toggle()
+                return true
+            }
         // Panoda liste, notlarda yeni hatırlatıcı / yeni not arasında seçim.
         case .clipboard, .notes:
             let isClipboard = state.tab == .clipboard

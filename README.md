@@ -14,7 +14,7 @@ SwiftUI + AppKit ile yazılmıştır, macOS 14 veya üstü gerekir.
 - Ekrana gelen bildirimlerin çentikte yansıtılması
 
 **Açık çentikte (sekmeler)**
-- **Ana sayfa** — Spotify, Music, tarayıcıdaki YouTube vb. için sistem genelinde medya bilgisi ve kontrolü, senkron şarkı sözleri, kapak rengine bürünen arka plan
+- **Ana sayfa** — Spotify, Music, tarayıcıdaki YouTube vb. için sistem genelinde medya bilgisi ve kontrolü, senkron şarkı sözleri ve yabancı sözlerin satır satır Türkçe çevirisi (macOS'un cihaz içi çevirisiyle), kapak rengine bürünen arka plan
 - **Takvim** — haftalık şerit, günün etkinlikleri ve hava durumu
 - **Pano** — metin, bağlantı, görsel ve dosya geçmişi; kaydedilen ekran görüntüleri de eklenir. Şifre yöneticilerinin gizli olarak işaretlediği kopyalar kaydedilmez.
 - **Sistem** — CPU, bellek, GPU, ağ ve disk kullanımı, küçük grafiklerle
