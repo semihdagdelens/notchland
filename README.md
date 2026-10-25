@@ -69,4 +69,8 @@ Her özellik yalnızca gerektiğinde izin ister:
 
 ## Teşekkür
 
-macOS 15.4 ve sonrasında sistem genelindeki medya bilgisi, [ungive/mediaremote-adapter](https://github.com/ungive/mediaremote-adapter) (BSD-3) ile okunur; `Resources/MediaRemote/` altında paketlenmiştir.
+macOS 15.4 ve sonrasında sistem genelindeki medya bilgisi, [ungive/mediaremote-adapter](https://github.com/ungive/mediaremote-adapter) (BSD-3) ile okunur; `Resources/MediaRemote/` altında kendi lisansıyla ([LICENSE](Resources/MediaRemote/LICENSE)) paketlenmiştir.
+
+## Lisans
+
+[MIT](LICENSE) © 2026 Semih Dağdelen
