@@ -33,7 +33,7 @@ SwiftUI + AppKit ile yazılmıştır, macOS 14 veya üstü gerekir.
 **Diğer**
 - Kısayolla açılan Türkçe dikte (cihaz üzerinde tanıma); bitince metni öndeki uygulamaya yapıştırır
 - Klavyeyle gezinme: kısayolla çentiği açıp sekmeler ve içerikler arasında tuşlarla dolaşma
-- Her sekmeye ve araca kısayol (⌃⌥ + harf); ⌃⌥K hepsinin tablosunu gösterir
+- Her sekmeye ve araca kısayol (varsayılan ⌃⌥ + harf, Ayarlar > Kısayollar'dan değiştirilebilir); ⌃⌥K hepsinin tablosunu gösterir
 - Pano kısayolu (⌃⌥P) ekran görüntülerini ve kopyalananları mandalla çamaşır ipine asar
 - Format çarkı (⌃⌥F): Finder'daki seçimi veya çentiğe sürüklenen dosyayı imleçle seçilen biçime çevirir (görsel, video, ses, belge, PDF); özgün dosyaya dokunmaz. `brew install ffmpeg` kuruluysa MP3, WebP, WebM, MKV ve videodan GIF de eklenir
 - Video bağlantısı indirme: YouTube vb. bir link kopyalanıp ⌃⌥F'ye basılınca çark MP4 / MP3 sunar, dosya İndirilenler'e iner (`brew install yt-dlp`)

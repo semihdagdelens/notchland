@@ -1,7 +1,7 @@
 import Carbon.HIToolbox
 import SwiftUI
 
-/// Sekmeleri ve araçları doğrudan açan genel kısayollar. Hepsi ⌃⌥ + Türkçe adının bir harfi:
+/// Sekmeleri ve araçları doğrudan açan genel kısayollar. Varsayılanları ⌃⌥ + Türkçe adının bir harfi:
 /// Ana sayfa, Pano, Raf, indiriLenler, Takvim, nOtlar, Hesap makinesi, Wrapped, İstatistik, Format, Kısayollar.
 enum AppShortcut: String, CaseIterable, Identifiable {
     case home, clipboard, shelf, downloads, calendar, notes, calculator, wrapped, stats, formatWheel, shortcuts
@@ -48,27 +48,45 @@ enum AppShortcut: String, CaseIterable, Identifiable {
         }
     }
 
-    private var key: (code: Int, label: String) {
+    private var defaultKeyCode: Int {
         switch self {
-        case .home: (kVK_ANSI_A, "A")
-        case .clipboard: (kVK_ANSI_P, "P")
-        case .shelf: (kVK_ANSI_R, "R")
-        case .downloads: (kVK_ANSI_L, "L")
-        case .calendar: (kVK_ANSI_T, "T")
-        case .notes: (kVK_ANSI_O, "O")
-        case .calculator: (kVK_ANSI_H, "H")
-        case .wrapped: (kVK_ANSI_W, "W")
-        case .stats: (kVK_ANSI_I, "I")
-        case .formatWheel: (kVK_ANSI_F, "F")
-        case .shortcuts: (kVK_ANSI_K, "K")
+        case .home: kVK_ANSI_A
+        case .clipboard: kVK_ANSI_P
+        case .shelf: kVK_ANSI_R
+        case .downloads: kVK_ANSI_L
+        case .calendar: kVK_ANSI_T
+        case .notes: kVK_ANSI_O
+        case .calculator: kVK_ANSI_H
+        case .wrapped: kVK_ANSI_W
+        case .stats: kVK_ANSI_I
+        case .formatWheel: kVK_ANSI_F
+        case .shortcuts: kVK_ANSI_K
         }
     }
 
-    var keyLabel: String { "⌃⌥ \(key.label)" }
+    var defaultCombo: KeyCombo { (UInt32(defaultKeyCode), UInt32(controlKey | optionKey)) }
 
-    /// Carbon tuş kodu ve değiştiricileri.
-    var combo: (keyCode: UInt32, modifiers: UInt32) {
-        (UInt32(key.code), UInt32(controlKey | optionKey))
+    var keyLabel: String { KeyComboLabel.text(for: combo) }
+
+    /// Ayarlardan değiştirilmişse o, yoksa varsayılan.
+    var combo: KeyCombo {
+        guard let custom = AppSettings.shared.customShortcuts[rawValue], custom.count == 2 else { return defaultCombo }
+        return (UInt32(custom[0]), UInt32(custom[1]))
+    }
+
+    var isCustomized: Bool { AppSettings.shared.customShortcuts[rawValue] != nil }
+
+    func setCombo(_ combo: KeyCombo) {
+        AppSettings.shared.customShortcuts[rawValue] = combo == defaultCombo ? nil : [Int(combo.keyCode), Int(combo.modifiers)]
+    }
+
+    /// Bu birleşimi kullanan başka bir kısayolun adı. Kapalı olanlar da sayılır; açılınca çakışmasınlar.
+    func conflict(with combo: KeyCombo) -> String? {
+        if let other = Self.allCases.first(where: { $0 != self && $0.combo == combo }) { return other.title }
+        let settings = AppSettings.shared
+        if let navigation = settings.navigationHotKey.combo, navigation == combo { return "Klavyeyle gezinme" }
+        if let dictation = settings.dictationHotKey.combo, dictation == combo { return "Dikte" }
+        return nil
     }
 
     /// Ayarlardan kapatılmamış.
@@ -122,7 +140,7 @@ struct ShortcutsView: View {
                 }
             }
             Spacer(minLength: 0)
-            Text("Aynı kısayol kapatır · ← → sekme değiştirir · ↓ sayfadaki düğmelere iner · Esc kapatır · Format çarkı için F'yi basılı tut, dilime kaydır, bırak")
+            Text("Aynı kısayol kapatır · ← → sekme değiştirir · ↓ sayfadaki düğmelere iner · Esc kapatır · Format çarkının kısayolunu basılı tut, dilime kaydır, bırak")
                 .font(.system(size: 9))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
@@ -146,30 +164,65 @@ struct KeyCap: View {
     }
 }
 
-/// Ayarlar penceresinde kısayolları tek tek kapatma (başka bir uygulamayla çakışırsa).
+/// Ayarlar penceresinde kısayolları değiştirme ve tek tek kapatma (başka bir uygulamayla çakışırsa).
 struct ShortcutSettings: View {
     @Bindable private var settings = AppSettings.shared
+    @State private var recorder = ShortcutRecorder()
 
     var body: some View {
         Form {
             Section {
                 ForEach(AppShortcut.allCases) { shortcut in
-                    Toggle(isOn: binding(for: shortcut)) {
-                        HStack {
-                            Text(shortcut.title)
-                            Spacer()
-                            KeyCap(text: shortcut.keyLabel)
-                        }
-                    }
+                    row(for: shortcut)
+                }
+                if !settings.customShortcuts.isEmpty {
+                    Button("Tümünü varsayılana döndür") { recorder.resetAll() }
                 }
             } header: {
                 Text("Genel kısayollar")
             } footer: {
-                Text("Başka bir uygulamayla çakışan kısayolu buradan kapatabilirsin. Klavyeyle gezinme ve dikte kısayolları kendi ayarlarından seçilir. Format çarkı Finder'daki seçimi okur; ilk kullanımda macOS izin sorar. MP3, WebP, WebM ve MKV için ffmpeg, video bağlantılarını indirmek için yt-dlp gerekir (brew install ffmpeg yt-dlp).")
+                Text("Değiştirmek için kısayola tıklayıp yeni tuşlara bas; Esc vazgeçer. Başka bir uygulamayla çakışan kısayolu buradan kapatabilirsin. Klavyeyle gezinme ve dikte kısayolları kendi ayarlarından seçilir. Format çarkı Finder'daki seçimi okur; ilk kullanımda macOS izin sorar. MP3, WebP, WebM ve MKV için ffmpeg, video bağlantılarını indirmek için yt-dlp gerekir (brew install ffmpeg yt-dlp).")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
+        .onDisappear { recorder.cancel() }
+    }
+
+    private func row(for shortcut: AppShortcut) -> some View {
+        let isRecording = recorder.target == shortcut
+        return VStack(alignment: .trailing, spacing: 4) {
+            HStack {
+                Text(shortcut.title)
+                Spacer()
+                Button { recorder.toggle(shortcut) } label: {
+                    KeyCap(text: isRecording ? "Tuşlara bas…" : shortcut.keyLabel)
+                        .overlay {
+                            if isRecording {
+                                RoundedRectangle(cornerRadius: 4).strokeBorder(Color.accentColor, lineWidth: 1.5)
+                            }
+                        }
+                }
+                .buttonStyle(.plain)
+                .help("Değiştirmek için tıkla")
+                // Düğme yer tutmaya devam eder; sağdaki sütun hizası bozulmasın.
+                Button { recorder.reset(shortcut) } label: {
+                    Image(systemName: "arrow.counterclockwise")
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .help("Varsayılana döndür")
+                .opacity(shortcut.isCustomized ? 1 : 0)
+                .disabled(!shortcut.isCustomized)
+                Toggle(shortcut.title, isOn: binding(for: shortcut))
+                    .labelsHidden()
+            }
+            if let notice = recorder.notice, notice.shortcut == shortcut {
+                Text(notice.text)
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
+        }
     }
 
     private func binding(for shortcut: AppShortcut) -> Binding<Bool> {

@@ -271,10 +271,13 @@ final class NotchWindowController {
     /// Yalnızca açık kısayolları ve görünür sekmelerinkini kaydeder; böylece kapalı olan tuş başka uygulamalara kalır.
     private func observeShortcutSettings() {
         let active = withObservationTracking {
-            AppShortcut.allCases.filter { $0.isEnabled && ($0.tab.map(state.isTabEnabled) ?? true) }
+            _ = settings.customShortcuts
+            return AppShortcut.allCases.filter { $0.isEnabled && ($0.tab.map(state.isTabEnabled) ?? true) }
         } onChange: { [weak self] in
             DispatchQueue.main.async { self?.observeShortcutSettings() }
         }
+        // Önce hepsini bırak: iki kısayol tuşlarını değiştirdiyse yenisi eskisine takılıp kaydedilemesin.
+        shortcutKeys.values.forEach { $0.register(nil) }
         for (shortcut, key) in shortcutKeys {
             key.register(active.contains(shortcut) ? shortcut.combo : nil)
         }

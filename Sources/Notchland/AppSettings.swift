@@ -105,6 +105,10 @@ final class AppSettings {
     var disabledShortcuts = AppSettings.value("disabledShortcuts", [String]()) {
         didSet { save("disabledShortcuts", disabledShortcuts) }
     }
+    /// Kullanıcının değiştirdiği genel kısayollar: `AppShortcut.rawValue` → [tuş kodu, değiştiriciler].
+    var customShortcuts = AppSettings.value("customShortcuts", [String: [Int]]()) {
+        didSet { save("customShortcuts", customShortcuts) }
+    }
     var showCalendarTab = AppSettings.value("showCalendarTab", true) { didSet { save("showCalendarTab", showCalendarTab) } }
     var showClipboardTab = AppSettings.value("showClipboardTab", true) { didSet { save("showClipboardTab", showClipboardTab) } }
     var showShelfTab = AppSettings.value("showShelfTab", true) { didSet { save("showShelfTab", showShelfTab) } }

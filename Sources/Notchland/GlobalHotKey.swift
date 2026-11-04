@@ -1,4 +1,5 @@
 import Carbon.HIToolbox
+import Foundation
 
 /// Sistem genelinde çalışan klavye kısayolu (Carbon). Erişilebilirlik izni gerektirmez.
 /// Her örnek kendi kimliğiyle kaydolur; böylece birden çok kısayol birbirini yutmaz.
@@ -10,18 +11,34 @@ final class GlobalHotKey {
     private let id: UInt32
     private var hotKeyRef: EventHotKeyRef?
     private var handlerRef: EventHandlerRef?
+    private var combo: KeyCombo?
+
+    private static let instances = NSHashTable<GlobalHotKey>.weakObjects()
+    private static var isSuspended = false
 
     init(id: UInt32 = 1) {
         self.id = id
     }
 
+    /// Ayarlarda yeni kısayol kaydedilirken hepsini geçici olarak bırakır; basılan tuşlar pencereye ulaşsın diye.
+    static func setSuspended(_ suspended: Bool) {
+        isSuspended = suspended
+        instances.allObjects.forEach { $0.apply() }
+    }
+
     /// Önceki kısayolu kaldırıp yenisini kaydeder; `nil` yalnızca kaldırır.
-    func register(_ combo: (keyCode: UInt32, modifiers: UInt32)?) {
+    func register(_ combo: KeyCombo?) {
+        self.combo = combo
+        Self.instances.add(self)
+        apply()
+    }
+
+    private func apply() {
         if let hotKeyRef {
             UnregisterEventHotKey(hotKeyRef)
             self.hotKeyRef = nil
         }
-        guard let combo else { return }
+        guard !Self.isSuspended, let combo else { return }
         installHandlerIfNeeded()
         let hotKeyID = EventHotKeyID(signature: Self.signature, id: id)
         let status = RegisterEventHotKey(combo.keyCode, combo.modifiers, hotKeyID, GetApplicationEventTarget(), 0, &hotKeyRef)
