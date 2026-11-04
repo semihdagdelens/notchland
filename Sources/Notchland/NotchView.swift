@@ -35,6 +35,10 @@ struct NotchView: View {
         if dictation.isActive { return NotchWindowController.dictationSize }
         if state.isExpanded { return NotchWindowController.expandedSize }
         var size = state.closedSize
+        let hasEars = (state.hud?.earWidth ?? 0) > 0 || showsLiveActivity
+        // Yalın kapalı notch kıvrımlarıyla birlikte fiziksel notch'a sığar; macOS menüleri notch'un
+        // kenarına kadar dizdiği için dışa taşan kıvrım son menünün üstüne binerdi.
+        if !hasEars { size.width -= topRadius * 2 }
         if let hud = state.hud {
             size.width += hud.earWidth * 2
             size.height += hud.extraHeight
@@ -58,6 +62,13 @@ struct NotchView: View {
 
     private var showsLiveActivity: Bool {
         LiveActivity.isShown(state: state, media: media, isDictating: dictation.isActive)
+    }
+
+    /// Menüler notch'a dayanırken canlı etkinlik yalnızca sağa uzar: şeklin sol kenarı
+    /// (kıvrım dahil) notch'un sol kenarına oturacak kadar sağa kaydırılır.
+    private var rightOnlyShift: CGFloat {
+        guard showsLiveActivity, state.isMenuBarCrowded else { return 0 }
+        return (size.width - state.closedSize.width) / 2 + topRadius
     }
 
     /// İçerik değiştiğinde (sekme, bırakma alanları) geçişi tetikleyen kimlik.
@@ -89,7 +100,8 @@ struct NotchView: View {
                 } else if showsLiveActivity, let track = media.track {
                     LiveActivityView(
                         track: track, visualizer: media.visualizer, tint: media.artworkColor,
-                        notchWidth: state.closedSize.width, notchHeight: state.closedSize.height
+                        notchWidth: state.closedSize.width, notchHeight: state.closedSize.height,
+                        rightOnly: state.isMenuBarCrowded, leadingInset: topRadius
                     )
                     .transition(.blurFade(scale: 0.9))
                 }
@@ -159,7 +171,11 @@ struct NotchView: View {
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
-            .background { NotchGlow(shape: shape, media: media, isOpen: isOpen, isVisible: !dictation.isActive) }
+            // Menüler notch'a dayanıyorsa kapalı notch'un ışığı da onların üstüne taşmasın.
+            .background {
+                NotchGlow(shape: shape, media: media, isOpen: isOpen,
+                          isVisible: !dictation.isActive && (isOpen || !state.isMenuBarCrowded))
+            }
             // Ses/parlaklık/pil baloncuğu: yerel x = 0, gövdenin sağ kenarına (omzun içine) oturur.
             .overlay(alignment: .topTrailing) {
                 HUDBubble(hud: state.hud, isExpanded: isOpen, notchHeight: state.closedSize.height)
@@ -170,6 +186,7 @@ struct NotchView: View {
                 state.tab = .shelf
                 return shelf.handleDrop(providers)
             }
+            .offset(x: rightOnlyShift)
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

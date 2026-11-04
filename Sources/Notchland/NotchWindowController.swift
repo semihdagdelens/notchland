@@ -74,6 +74,7 @@ final class NotchWindowController {
     private let reminders = RemindersService()
     private let notes = NotesService()
     private let notificationMirror = NotificationMirror()
+    private let menuBar = MenuBarWatcher()
     private let hotKey = GlobalHotKey()
     private lazy var keyboard = KeyboardNavigator(state: state, media: media)
     private let formatWheel = FormatWheelController()
@@ -137,6 +138,7 @@ final class NotchWindowController {
             self.state.present(.notification(notice))
         }
         notificationMirror.start()
+        startMenuBarWatch()
         observePanelSize()
     }
 
@@ -168,6 +170,23 @@ final class NotchWindowController {
         sizePreviewEnd = end
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: end)
     }
+
+    /// Sol kulağın sol kenarı (kıvrım ve küçük bir pay dahil); öndeki uygulamanın menüleri buraya taşarsa canlı etkinlik sağa geçer.
+    private func startMenuBarWatch() {
+        menuBar.notchMinX = { [weak self] in
+            guard let self, let panel = self.panel else { return nil }
+            return panel.frame.midX - self.state.closedSize.width / 2
+        }
+        menuBar.limitX = { [weak self] in
+            guard let self, let notchLeft = self.menuBar.notchMinX() else { return nil }
+            return notchLeft - LiveActivity.earWidth(notchHeight: self.state.closedSize.height) - 10
+        }
+        menuBar.onChange = { [weak self] crowded in
+            withAnimation(.spring(response: 0.36, dampingFraction: 0.95)) { self?.state.isMenuBarCrowded = crowded }
+        }
+        menuBar.start()
+    }
+
 
     // MARK: - Dikte
 
@@ -479,18 +498,21 @@ final class NotchWindowController {
         let mouse = NSEvent.mouseLocation
         let frame = panel.frame
         let activeSize: CGSize
+        /// Menüler kalabalıkken canlı etkinlik yalnızca sağa uzar; tetikleme alanı da onunla kayar.
+        var shift: CGFloat = 0
         if state.isExpanded {
             activeSize = Self.expandedSize
         } else if state.isDraggingContent {
             activeSize = Self.dragActivationSize
         } else {
             // Kapalıyken notch'un biraz altına kadar tetikleme payı bırak; çalarken yanlardaki kapak ve dalga da dahil.
-            let ears = LiveActivity.isShown(state: state, media: media, isDictating: dictation.isActive)
-                ? LiveActivity.earWidth(notchHeight: state.closedSize.height) * 2 : 0
-            activeSize = CGSize(width: state.closedSize.width + ears, height: state.closedSize.height + 6)
+            let live = LiveActivity.isShown(state: state, media: media, isDictating: dictation.isActive)
+            let ear = live ? LiveActivity.earWidth(notchHeight: state.closedSize.height) : 0
+            if state.isMenuBarCrowded { shift = ear }
+            activeSize = CGSize(width: state.closedSize.width + ear * 2, height: state.closedSize.height + 6)
         }
         let activeRect = NSRect(
-            x: frame.midX - activeSize.width / 2,
+            x: frame.midX - activeSize.width / 2 + shift,
             y: frame.maxY - activeSize.height,
             width: activeSize.width,
             height: activeSize.height
@@ -639,6 +661,8 @@ final class NotchState {
     /// Fare kapalı notch'un üzerinde (açılma gecikmesi sırasında hafif büyüme).
     var isHovering = false
     var closedSize = CGSize(width: 200, height: 32)
+    /// Öndeki uygulamanın menüleri notch'a dayanıyor; yan kulaklar menüleri örtmesin.
+    var isMenuBarCrowded = false
     var tab: Tab = .home {
         didSet { if tab != oldValue { focusedKeyStop = nil } }
     }
