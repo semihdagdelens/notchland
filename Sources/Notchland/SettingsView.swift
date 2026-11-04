@@ -41,6 +41,8 @@ struct SettingsView: View {
                 .tabItem { Label("Pano ve Müzik", systemImage: "doc.on.clipboard") }
             DictationSettings()
                 .tabItem { Label("Dikte", systemImage: "mic") }
+            ShortcutSettings()
+                .tabItem { Label("Kısayollar", systemImage: "keyboard") }
         }
         .frame(width: 520, height: 460)
     }

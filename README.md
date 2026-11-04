@@ -32,6 +32,7 @@ SwiftUI + AppKit ile yazılmıştır, macOS 14 veya üstü gerekir.
 **Diğer**
 - Kısayolla açılan Türkçe dikte (cihaz üzerinde tanıma); bitince metni öndeki uygulamaya yapıştırır
 - Klavyeyle gezinme: kısayolla çentiği açıp sekmeler ve içerikler arasında tuşlarla dolaşma
+- Her sekmeye ve araca kısayol (⌃⌥ + harf); ⌃⌥K hepsinin tablosunu gösterir
 - Oturum açılınca başlatma
 
 Hepsi menü çubuğundaki simgeden açılan **Ayarlar** penceresinden açılıp kapatılabilir.

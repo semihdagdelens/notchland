@@ -69,6 +69,7 @@ final class NotchWindowController {
     private let notificationMirror = NotificationMirror()
     private let hotKey = GlobalHotKey()
     private lazy var keyboard = KeyboardNavigator(state: state, media: media)
+    private var shortcutKeys: [AppShortcut: GlobalHotKey] = [:]
     private var panel: NotchPanel?
     private var mouseMonitors: [Any] = []
     private let settings = AppSettings.shared
@@ -108,6 +109,7 @@ final class NotchWindowController {
         clipboard.start()
         startDictation()
         startKeyboardNavigation()
+        startShortcuts()
 
         headphones.onConnect = { [weak self] device in
             guard self?.settings.headphoneHUD == true else { return }
@@ -120,7 +122,6 @@ final class NotchWindowController {
         }
         notificationMirror.start()
     }
-
 
     // MARK: - Dikte
 
@@ -203,6 +204,56 @@ final class NotchWindowController {
         }
         pendingExpand?.cancel()
         pendingExpand = nil
+        state.isKeyboardActive = true
+        setExpanded(true)
+        panel.makeKeyAndOrderFront(nil)
+    }
+
+    // MARK: - Genel kısayollar
+
+    private func startShortcuts() {
+        for (index, shortcut) in AppShortcut.allCases.enumerated() {
+            // 1 ve 2 dikte ile klavyeyle gezinmenin kimlikleri.
+            let key = GlobalHotKey(id: UInt32(10 + index))
+            key.onPress = { [weak self] in self?.perform(shortcut) }
+            shortcutKeys[shortcut] = key
+        }
+        observeShortcutSettings()
+    }
+
+    /// Yalnızca açık kısayolları ve görünür sekmelerinkini kaydeder; böylece kapalı olan tuş başka uygulamalara kalır.
+    private func observeShortcutSettings() {
+        let active = withObservationTracking {
+            AppShortcut.allCases.filter { $0.isEnabled && ($0.tab.map(state.isTabEnabled) ?? true) }
+        } onChange: { [weak self] in
+            DispatchQueue.main.async { self?.observeShortcutSettings() }
+        }
+        for (shortcut, key) in shortcutKeys {
+            key.register(active.contains(shortcut) ? shortcut.combo : nil)
+        }
+    }
+
+    private func perform(_ shortcut: AppShortcut) {
+        guard !dictation.isActive else { return }
+        switch shortcut {
+        case .shortcuts: open(tab: nil, showingShortcuts: true)
+        default: open(tab: shortcut.tab, showingShortcuts: false)
+        }
+    }
+
+    /// Notch'u istenen içerikle klavye odağında açar; zaten o içerik açıksa aynı kısayol kapatır.
+    private func open(tab: NotchState.Tab?, showingShortcuts: Bool) {
+        guard let panel else { return }
+        let isShowing = state.isExpanded && state.isKeyboardActive
+            && state.showsShortcuts == showingShortcuts && (tab == nil || tab == state.tab)
+        if isShowing {
+            setExpanded(false)
+            return
+        }
+        pendingExpand?.cancel()
+        pendingExpand = nil
+        if let tab { state.select(tab) }
+        state.showsShortcuts = showingShortcuts
         state.isKeyboardActive = true
         setExpanded(true)
         panel.makeKeyAndOrderFront(nil)
@@ -422,6 +473,7 @@ final class NotchWindowController {
         } else {
             state.isEditingText = false
             state.isKeyboardActive = false
+            state.showsShortcuts = false
             NotchPanel.releaseKeyFocus()
         }
         // Açılış hafif sekerek, kapanış sekmeden ve biraz daha çabuk.
@@ -476,6 +528,8 @@ final class NotchState {
     var keyCommand: KeyCommand?
     /// Notch'u kapatır (ör. panodan Return ile yapıştırmadan önce).
     @ObservationIgnored var onClose: (() -> Void)?
+    /// Kısayol tablosu gösteriliyor (sekme değiştirilince kapanır).
+    var showsShortcuts = false
     /// Fare kapalı notch'un üzerinde (açılma gecikmesi sırasında hafif büyüme).
     var isHovering = false
     var closedSize = CGSize(width: 200, height: 32)
@@ -508,6 +562,7 @@ final class NotchState {
     }
 
     func select(_ newTab: Tab) {
+        if showsShortcuts { withAnimation(.spring(response: 0.32, dampingFraction: 0.9)) { showsShortcuts = false } }
         guard newTab != tab else { return }
         withAnimation(.spring(response: 0.32, dampingFraction: 0.9)) { tab = newTab }
     }

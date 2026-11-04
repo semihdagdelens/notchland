@@ -77,6 +77,10 @@ final class AppSettings {
     var navigationHotKey = NavigationHotKey(rawValue: AppSettings.value("navigationHotKey", "controlOptionN")) ?? .controlOptionN {
         didSet { save("navigationHotKey", navigationHotKey.rawValue) }
     }
+    /// Ayarlardan kapatılan genel kısayollar (`AppShortcut.rawValue`).
+    var disabledShortcuts = AppSettings.value("disabledShortcuts", [String]()) {
+        didSet { save("disabledShortcuts", disabledShortcuts) }
+    }
     var showCalendarTab = AppSettings.value("showCalendarTab", true) { didSet { save("showCalendarTab", showCalendarTab) } }
     var showClipboardTab = AppSettings.value("showClipboardTab", true) { didSet { save("showClipboardTab", showClipboardTab) } }
     var showShelfTab = AppSettings.value("showShelfTab", true) { didSet { save("showShelfTab", showShelfTab) } }

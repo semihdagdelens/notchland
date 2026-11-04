@@ -61,7 +61,8 @@ struct NotchView: View {
 
     /// İçerik değiştiğinde (sekme, bırakma alanları) geçişi tetikleyen kimlik.
     private var contentID: String {
-        state.isDraggingContent && !state.isDraggingFromShelf ? "drop" : "\(state.tab)"
+        if state.isDraggingContent && !state.isDraggingFromShelf { return "drop" }
+        return state.showsShortcuts ? "shortcuts" : "\(state.tab)"
     }
 
     var body: some View {
@@ -99,6 +100,8 @@ struct NotchView: View {
                         Group {
                             if state.isDraggingContent && !state.isDraggingFromShelf {
                                 DropZonesView(shelf: shelf)
+                            } else if state.showsShortcuts {
+                                ShortcutsView(state: state)
                             } else {
                             switch state.tab {
                             case .home:

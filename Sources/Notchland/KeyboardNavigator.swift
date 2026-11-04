@@ -75,6 +75,13 @@ final class KeyboardNavigator {
             return true
         }
 
+        // Kısayol tablosu sekmenin önünde durur; tuşlar arkadaki sekmeye gitmesin.
+        if state.showsShortcuts {
+            guard key == kVK_LeftArrow || key == kVK_RightArrow else { return false }
+            state.selectAdjacent(key == kVK_RightArrow ? 1 : -1)
+            return true
+        }
+
         switch state.tab {
         // Hesap makinesi rakam ve işlem tuşlarını kendisi alır; yön tuşlarını kullanmaz.
         case .calculator:
