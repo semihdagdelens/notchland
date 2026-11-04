@@ -69,6 +69,7 @@ final class NotchWindowController {
     private let notificationMirror = NotificationMirror()
     private let hotKey = GlobalHotKey()
     private lazy var keyboard = KeyboardNavigator(state: state, media: media)
+    private let formatWheel = FormatWheelController()
     private var shortcutKeys: [AppShortcut: GlobalHotKey] = [:]
     private var panel: NotchPanel?
     private var mouseMonitors: [Any] = []
@@ -109,6 +110,7 @@ final class NotchWindowController {
         clipboard.start()
         startDictation()
         startKeyboardNavigation()
+        startFormatWheel()
         startShortcuts()
 
         headphones.onConnect = { [weak self] device in
@@ -218,6 +220,7 @@ final class NotchWindowController {
             key.onPress = { [weak self] in self?.perform(shortcut) }
             shortcutKeys[shortcut] = key
         }
+        shortcutKeys[.formatWheel]?.onRelease = { [weak self] in self?.formatWheel.hotKeyReleased() }
         observeShortcutSettings()
     }
 
@@ -236,6 +239,7 @@ final class NotchWindowController {
     private func perform(_ shortcut: AppShortcut) {
         guard !dictation.isActive else { return }
         switch shortcut {
+        case .formatWheel: formatWheel.hotKeyPressed()
         case .shortcuts: open(tab: nil, showingShortcuts: true)
         default: open(tab: shortcut.tab, showingShortcuts: false)
         }
@@ -258,6 +262,21 @@ final class NotchWindowController {
         state.isKeyboardActive = true
         setExpanded(true)
         panel.makeKeyAndOrderFront(nil)
+    }
+
+    // MARK: - Format çarkı
+
+    private func startFormatWheel() {
+        formatWheel.fallbackSources = { [weak self] in self?.clipboard.latestConvertibleURLs() ?? [] }
+        formatWheel.onWillOpen = { [weak self] in
+            self?.pendingExpand?.cancel()
+            self?.pendingExpand = nil
+            self?.setExpanded(false)
+        }
+        formatWheel.onNotice = { [weak self] title, body in
+            self?.state.present(.notification(.init(appName: "Format Çarkı", title: title, body: body, bundleID: nil)))
+        }
+        state.onConvert = { [weak self] urls in self?.formatWheel.open(urls) }
     }
 
     // MARK: - Ses, parlaklık, pil
@@ -399,6 +418,8 @@ final class NotchWindowController {
         if state.isDraggingFromShelf { return }
         // Dikte paneli fareden bağımsız; kısayol veya düğmeyle kapanır.
         if dictation.isActive { return }
+        // Çark açıkken imleç çentiğin üzerinden geçse de notch açılmasın.
+        if formatWheel.isVisible { return }
         // Not yazılırken fare dışarı kaysa da açık kalır; dışarı tıklanınca kapanır.
         if state.isEditingText && state.isExpanded { return }
         // Klavyeyle açıldıysa fare dışarıdayken de açık kalır; Esc, kısayol veya dışarı tıklama kapatır.
@@ -534,6 +555,8 @@ final class NotchState {
     var showsShortcuts = false
     /// Pano kısayolla açıldı: liste yerine çamaşır ipi.
     var showsClothesline = false
+    /// Dosyaları format çarkında açar (sağ tık menüleri ve bırakma alanı).
+    @ObservationIgnored var onConvert: (([URL]) -> Void)?
     /// Fare kapalı notch'un üzerinde (açılma gecikmesi sırasında hafif büyüme).
     var isHovering = false
     var closedSize = CGSize(width: 200, height: 32)

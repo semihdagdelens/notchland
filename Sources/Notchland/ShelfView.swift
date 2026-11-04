@@ -122,6 +122,9 @@ private struct ShelfItemView: View {
             Button("Aç") { shelf.open(item) }
             Button("Finder'da Göster") { shelf.revealInFinder(item) }
             Button("AirDrop ile Gönder") { shelf.airDrop([item]) }
+            if FormatFamily(url: item.url) != nil {
+                Button("Formatını Değiştir…") { state.onConvert?([item.url]) }
+            }
             Divider()
             Button("Raftan Kaldır") { shelf.remove(item) }
         }

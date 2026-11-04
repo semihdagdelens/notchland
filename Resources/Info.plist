@@ -43,12 +43,12 @@
     <key>NSRemindersUsageDescription</key>
     <string>Notchland, hatırlatıcılarınızı notch'ta listelemek için Hatırlatıcılar'a erişir.</string>
     <key>NSAppleEventsUsageDescription</key>
-    <string>Notchland, hızlı notlarınızı Notlar uygulamasındaki “Notchland” klasörüyle eşitlemek için Notlar'ı denetler.</string>
+    <string>Notchland, hızlı notlarınızı Notlar uygulamasındaki “Notchland” klasörüyle eşitlemek için Notlar'ı, format değiştiricide seçili dosyaları okumak için Finder'ı denetler.</string>
     <key>NSDesktopFolderUsageDescription</key>
     <string>Notchland, Masaüstüne kaydedilen ekran görüntülerini pano geçmişine eklemek için bu klasöre erişir.</string>
     <key>NSDocumentsFolderUsageDescription</key>
     <string>Notchland, ekran görüntüleriniz Belgeler'e kaydediliyorsa onları pano geçmişine eklemek için bu klasöre erişir.</string>
     <key>NSDownloadsFolderUsageDescription</key>
-    <string>Notchland, ekran görüntüleriniz İndirilenler'e kaydediliyorsa onları pano geçmişine eklemek için bu klasöre erişir.</string>
+    <string>Notchland, ekran görüntüleriniz İndirilenler'e kaydediliyorsa onları pano geçmişine eklemek ve indirdiğiniz videoları kaydetmek için bu klasöre erişir.</string>
 </dict>
 </plist>

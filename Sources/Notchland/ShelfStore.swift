@@ -78,6 +78,14 @@ final class ShelfStore {
         }
     }
 
+    /// Bırakılan içerikleri format çarkına hazırlar (rafa eklemeden).
+    @discardableResult
+    func resolveForConversion(_ providers: [NSItemProvider], completion: @escaping ([URL]) -> Void) -> Bool {
+        let temp = FileManager.default.temporaryDirectory.appendingPathComponent("NotchlandConvert", isDirectory: true)
+        try? FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
+        return resolveURLs(from: providers, storingIn: temp, completion: completion)
+    }
+
     func airDrop(_ items: [Item]) {
         Sharing.airDrop(items.map(\.url))
     }

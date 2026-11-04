@@ -26,7 +26,8 @@ swift scripts/make-icon.swift icon.png   # ikonu 1024px çizer; ardından iconse
 - `NotchView.swift`: çentik şekli ve boyutu (kapalı / HUD kulakları / canlı etkinlik / açık / dikte), sekme yönlendirmesi.
 - Servisler `@Observable final class`, görünümler SwiftUI `struct`. Servis–görünüm çifti genelde `XService`/`XStore` + `XView` adlandırmasıyla ayrı dosyalarda.
 - `AppSettings.shared`: tüm ayarlar; her özellik `didSet` ile UserDefaults'a yazar. Yeni ayar eklerken aynı kalıbı (`AppSettings.value(key, varsayılan)` + `save`) izle ve `SettingsView`'a ekle.
-- Yeni sekme eklemek: `NotchState.Tab`'a case, `isTabEnabled`, `AppSettings`'te `showXTab`, `NotchView`'daki switch, gerekiyorsa `KeyboardNavigator`.
+- Yeni sekme eklemek: `NotchState.Tab`'a case, `isTabEnabled`, `AppSettings`'te `showXTab`, `NotchView`'daki switch, gerekiyorsa `KeyboardNavigator`; kısayolu için `AppShortcut`'a case.
+- Format çarkı (`FormatWheel`, `FormatConverter`) çentiğe sığmadığından kendi panelinde, imlecin çevresinde açılır; 600×190 sınırı `NotchPanel` içindir. Dönüştürme macOS araçlarıyla yapılır (ImageIO, AVFoundation, `afconvert`, `textutil`, PDFKit); ffmpeg isteğe bağlıdır, Homebrew'dan bulunur ve pakete gömülmez (GPL).
 
 ### Belgelenmemiş / özel API'ler
 
@@ -39,7 +40,7 @@ Bunlar bilerek kullanılıyor; değiştirirken kırılgan olduklarını unutma:
 - **Notlar** (`NotesService`): JXA (`osascript`) ile; Notlar'ın genel API'si yok.
 - **Ses dalgası**: `VisualizerEngine` kaynağı seçer → kayıtlı ritim (`RhythmRecording`, `~/Library/Application Support/Notchland/Ritimler/`) → yoksa `SystemAudioTap` (Core Audio process tap) ile dinleyip kaydetme → o da yoksa yapay dalga.
 
-Ağ: yalnızca Open-Meteo (hava) ve LRCLIB (sözler); ikisi de anahtarsız. Yeni bir dış servis eklemeden önce sor.
+Ağ: Open-Meteo (hava) ve LRCLIB (sözler), ikisi de anahtarsız; bir de kullanıcı çarkta dilim seçince yt-dlp ile video sitesinden indirme. Yeni bir dış servis eklemeden önce sor.
 
 ## Kurallar
 

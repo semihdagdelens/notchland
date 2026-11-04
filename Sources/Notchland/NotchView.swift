@@ -99,7 +99,7 @@ struct NotchView: View {
                             .frame(height: state.closedSize.height)
                         Group {
                             if state.isDraggingContent && !state.isDraggingFromShelf {
-                                DropZonesView(shelf: shelf)
+                                DropZonesView(state: state, shelf: shelf)
                             } else if state.showsShortcuts {
                                 ShortcutsView(state: state)
                             } else {

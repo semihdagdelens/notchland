@@ -4,6 +4,8 @@ import Carbon.HIToolbox
 /// Her örnek kendi kimliğiyle kaydolur; böylece birden çok kısayol birbirini yutmaz.
 final class GlobalHotKey {
     var onPress: (() -> Void)?
+    /// Tuş bırakıldı (basılı tutup bırakarak çalışan format çarkı için).
+    var onRelease: (() -> Void)?
 
     private let id: UInt32
     private var hotKeyRef: EventHotKeyRef?
@@ -32,7 +34,9 @@ final class GlobalHotKey {
 
     private func installHandlerIfNeeded() {
         guard handlerRef == nil else { return }
-        var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+        let specs = [kEventHotKeyPressed, kEventHotKeyReleased].map {
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32($0))
+        }
         let callback: EventHandlerUPP = { _, event, userInfo in
             guard let event, let userInfo else { return OSStatus(eventNotHandledErr) }
             let hotKey = Unmanaged<GlobalHotKey>.fromOpaque(userInfo).takeUnretainedValue()
@@ -43,11 +47,12 @@ final class GlobalHotKey {
             )
             // Başka bir örneğin kısayoluysa olayı sıradaki işleyiciye bırak.
             guard pressed.signature == GlobalHotKey.signature, pressed.id == hotKey.id else { return OSStatus(eventNotHandledErr) }
-            DispatchQueue.main.async { hotKey.onPress?() }
+            let isRelease = GetEventKind(event) == UInt32(kEventHotKeyReleased)
+            DispatchQueue.main.async { isRelease ? hotKey.onRelease?() : hotKey.onPress?() }
             return noErr
         }
         InstallEventHandler(
-            GetApplicationEventTarget(), callback, 1, &spec,
+            GetApplicationEventTarget(), callback, specs.count, specs,
             Unmanaged.passUnretained(self).toOpaque(), &handlerRef
         )
     }

@@ -2,9 +2,9 @@ import Carbon.HIToolbox
 import SwiftUI
 
 /// Sekmeleri ve araçları doğrudan açan genel kısayollar. Hepsi ⌃⌥ + Türkçe adının bir harfi:
-/// Ana sayfa, Pano, Raf, Takvim, nOtlar, Hesap makinesi, Wrapped, İstatistik, Kısayollar.
+/// Ana sayfa, Pano, Raf, Takvim, nOtlar, Hesap makinesi, Wrapped, İstatistik, Format, Kısayollar.
 enum AppShortcut: String, CaseIterable, Identifiable {
-    case home, clipboard, shelf, calendar, notes, calculator, wrapped, stats, shortcuts
+    case home, clipboard, shelf, calendar, notes, calculator, wrapped, stats, formatWheel, shortcuts
 
     var id: String { rawValue }
 
@@ -18,18 +18,20 @@ enum AppShortcut: String, CaseIterable, Identifiable {
         case .calculator: "Hesap makinesi"
         case .wrapped: "Dinleme özeti"
         case .stats: "Sistem"
+        case .formatWheel: "Format çarkı"
         case .shortcuts: "Bu tablo"
         }
     }
 
     var symbol: String {
         switch self {
+        case .formatWheel: "circle.dotted.circle"
         case .shortcuts: "keyboard"
         default: tab?.symbol ?? "circle"
         }
     }
 
-    /// Kısayolun açtığı sekme; tablo sekme değildir.
+    /// Kısayolun açtığı sekme; çark ve tablo sekme değildir.
     var tab: NotchState.Tab? {
         switch self {
         case .home: .home
@@ -40,7 +42,7 @@ enum AppShortcut: String, CaseIterable, Identifiable {
         case .calculator: .calculator
         case .wrapped: .wrapped
         case .stats: .stats
-        case .shortcuts: nil
+        case .formatWheel, .shortcuts: nil
         }
     }
 
@@ -54,6 +56,7 @@ enum AppShortcut: String, CaseIterable, Identifiable {
         case .calculator: (kVK_ANSI_H, "H")
         case .wrapped: (kVK_ANSI_W, "W")
         case .stats: (kVK_ANSI_I, "I")
+        case .formatWheel: (kVK_ANSI_F, "F")
         case .shortcuts: (kVK_ANSI_K, "K")
         }
     }
@@ -116,7 +119,7 @@ struct ShortcutsView: View {
                 }
             }
             Spacer(minLength: 0)
-            Text("Aynı kısayol kapatır · ← → sekme değiştirir · Esc kapatır")
+            Text("Aynı kısayol kapatır · ← → sekme değiştirir · Esc kapatır · Format çarkı için F'yi basılı tut, dilime kaydır, bırak")
                 .font(.system(size: 9))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
@@ -159,7 +162,7 @@ struct ShortcutSettings: View {
             } header: {
                 Text("Genel kısayollar")
             } footer: {
-                Text("Başka bir uygulamayla çakışan kısayolu buradan kapatabilirsin. Klavyeyle gezinme ve dikte kısayolları kendi ayarlarından seçilir.")
+                Text("Başka bir uygulamayla çakışan kısayolu buradan kapatabilirsin. Klavyeyle gezinme ve dikte kısayolları kendi ayarlarından seçilir. Format çarkı Finder'daki seçimi okur; ilk kullanımda macOS izin sorar. MP3, WebP, WebM ve MKV için ffmpeg, video bağlantılarını indirmek için yt-dlp gerekir (brew install ffmpeg yt-dlp).")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }

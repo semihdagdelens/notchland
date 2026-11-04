@@ -289,6 +289,12 @@ struct ClipboardItemMenu: View {
         if let url = item.originalFileURL {
             Button("Finder'da Göster") { NSWorkspace.shared.activateFileViewerSelecting([url]) }
         }
+        if item.kind == .image || item.kind == .files {
+            Button("Formatını Değiştir…") { state.onConvert?(clipboard.fileURLs(for: item)) }
+        }
+        if let link = item.videoLink, ExternalTool.ytDlp.path != nil {
+            Button("Videoyu İndir…") { state.onConvert?([link]) }
+        }
         Divider()
         Button("Sil") { clipboard.remove(item) }
     }

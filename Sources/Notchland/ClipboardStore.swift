@@ -23,6 +23,12 @@ final class ClipboardStore {
         /// macOS ekran görüntüsünden geldi (dosyası `filePaths` içinde).
         var isScreenshot: Bool?
 
+        /// Çarkta indirilebilecek video bağlantısı.
+        var videoLink: URL? {
+            guard kind == .link, let text else { return nil }
+            return URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { FormatFamily.isVideoLink($0) ? $0 : nil }
+        }
+
         /// Yinelenenleri bulmak için içerik anahtarı.
         var contentKey: String {
             switch kind {
@@ -303,6 +309,24 @@ final class ClipboardStore {
               ] as CFDictionary)
         else { return nil }
         return NSImage(cgImage: cgImage, size: .zero)
+    }
+
+    /// Öğenin dönüştürülecek dosyaları: varsa asıl konumu, yoksa pano klasöründeki kopyası.
+    func fileURLs(for item: Item) -> [URL] {
+        let originals = (item.filePaths ?? []).filter(FileManager.default.fileExists).map { URL(fileURLWithPath: $0) }
+        if !originals.isEmpty { return originals }
+        return item.imageFile.map { [directory.appendingPathComponent($0)] } ?? []
+    }
+
+    /// Format çarkı için en son kopyalanan dosya, görsel veya video bağlantısı.
+    /// Pano birkaç yüz ms'de bir okunduğundan, az önce kopyalanan bağlantı kaçmasın diye önce yoklanır.
+    func latestConvertibleURLs() -> [URL] {
+        poll()
+        for item in items {
+            if item.kind == .files || item.kind == .image { return fileURLs(for: item) }
+            if let link = item.videoLink { return [link] }
+        }
+        return []
     }
 
     private func deleteFiles(of item: Item) {

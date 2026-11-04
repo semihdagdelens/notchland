@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// Notch'a içerik sürüklenirken gösterilen iki bırakma alanı: raf ve AirDrop.
+/// Notch'a içerik sürüklenirken gösterilen bırakma alanları: raf, format çarkı ve AirDrop.
 struct DropZonesView: View {
+    let state: NotchState
     let shelf: ShelfStore
 
     var body: some View {
@@ -10,6 +11,9 @@ struct DropZonesView: View {
                 DropZone(title: "Rafa Ekle", symbol: "tray.and.arrow.down.fill", tint: .white) {
                     shelf.handleDrop($0)
                 }
+            }
+            DropZone(title: "Format Değiştir", symbol: "circle.dotted.circle", tint: .orange) { providers in
+                shelf.resolveForConversion(providers) { state.onConvert?($0) }
             }
             DropZone(title: "AirDrop", symbol: "airplayaudio", tint: .blue, customIcon: AnyView(AirDropIcon())) {
                 shelf.airDrop($0)
