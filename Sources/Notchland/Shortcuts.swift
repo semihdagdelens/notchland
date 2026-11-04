@@ -122,7 +122,7 @@ struct ShortcutsView: View {
                 }
             }
             Spacer(minLength: 0)
-            Text("Aynı kısayol kapatır · ← → sekme değiştirir · Esc kapatır · Format çarkı için F'yi basılı tut, dilime kaydır, bırak")
+            Text("Aynı kısayol kapatır · ← → sekme değiştirir · ↓ sayfadaki düğmelere iner · Esc kapatır · Format çarkı için F'yi basılı tut, dilime kaydır, bırak")
                 .font(.system(size: 9))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)

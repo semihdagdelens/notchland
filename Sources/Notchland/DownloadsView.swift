@@ -34,7 +34,7 @@ struct DownloadsView: View {
                                     state: state, downloads: downloads, shelf: shelf, item: item,
                                     // Ad ve tarih satırlarına kalan yükseklik kadar.
                                     side: max(58, area.size.height - 38),
-                                    isSelected: state.isKeyboardActive && item.id == selectedItem?.id
+                                    isSelected: state.isKeyFocused(KeyStop.contentID(.downloads)) && item.id == selectedItem?.id
                                 )
                                 .id(item.id)
                             }
@@ -46,6 +46,7 @@ struct DownloadsView: View {
                     }
                 }
                 }
+                .keyContent(.downloads, row: 1, axis: .horizontal)
             }
         }
         .onAppear { downloads.start() }
@@ -54,7 +55,7 @@ struct DownloadsView: View {
         }
     }
 
-    /// Klavyeyle gezinme: ← → seçer, Return açar, ⌘C kopyalar.
+    /// Klavyeyle gezinme, dosyalardayken: ← → seçer, Return açar, ⌘C kopyalar.
     private func perform(_ command: NotchState.KeyCommand.Kind) {
         let items = downloads.items
         guard let current = selectedItem, let index = items.firstIndex(of: current) else { return }
@@ -85,6 +86,10 @@ struct DownloadsView: View {
             }
             .buttonStyle(.plain)
             .help("Klasörü Finder'da aç")
+            .keyStop(state, .downloads, "folder", order: 0, outset: 0) {
+                state.onClose?()
+                downloads.revealFolder()
+            }
         }
     }
 }

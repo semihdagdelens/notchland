@@ -2,14 +2,15 @@ import SwiftUI
 
 /// Takvim sekmesi: solda hafta şeridi ve günün etkinlikleri, sağda hava durumu detayı.
 struct CalendarTabView: View {
+    let state: NotchState
     let calendar: CalendarService
     let weather: WeatherService
 
     var body: some View {
         HStack(alignment: .top, spacing: 18) {
             VStack(alignment: .leading, spacing: 8) {
-                WeekStrip(calendar: calendar)
-                EventList(calendar: calendar)
+                WeekStrip(state: state, calendar: calendar)
+                EventList(state: state, calendar: calendar)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -22,6 +23,7 @@ struct CalendarTabView: View {
 }
 
 private struct WeekStrip: View {
+    let state: NotchState
     let calendar: CalendarService
 
     private var days: [Date] {
@@ -32,7 +34,7 @@ private struct WeekStrip: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            ForEach(days, id: \.self) { day in
+            ForEach(Array(days.enumerated()), id: \.element) { index, day in
                 let isSelected = Calendar.current.isDate(day, inSameDayAs: calendar.selectedDay)
                 let isToday = Calendar.current.isDateInToday(day)
                 Button {
@@ -53,12 +55,14 @@ private struct WeekStrip: View {
                     )
                 }
                 .buttonStyle(.plain)
+                .keyStop(state, .calendar, "day\(index)", order: index, outset: 0) { calendar.selectedDay = day }
             }
         }
     }
 }
 
 private struct EventList: View {
+    let state: NotchState
     let calendar: CalendarService
 
     var body: some View {
@@ -79,15 +83,20 @@ private struct EventList: View {
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
+                .keyStop(state, .calendar, "noEvents", row: 1, order: 0, outset: 0) { calendar.openCalendarApp() }
             } else {
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 5) {
-                        ForEach(calendar.events) { event in
-                            EventRow(event: event)
-                                .contentShape(Rectangle())
-                                .onTapGesture { calendar.open(event) }
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical, showsIndicators: false) {
+                        VStack(alignment: .leading, spacing: 5) {
+                            ForEach(Array(calendar.events.enumerated()), id: \.element.id) { index, event in
+                                EventRow(event: event)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { calendar.open(event) }
+                                    .keyStop(state, .calendar, "event\(event.id)", row: index + 1, order: 0, outset: 0) { calendar.open(event) }
+                            }
                         }
                     }
+                    .scrollsToKeyFocus(state, proxy)
                 }
             }
         }

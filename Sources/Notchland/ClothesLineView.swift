@@ -68,6 +68,9 @@ struct ClothesLineView: View {
             }
             .buttonStyle(.plain)
             .help("Liste görünümü")
+            .keyStop(state, .clipboard, "view", order: 0, outset: 0) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { state.showsClothesline = false }
+            }
             Button {
                 clipboard.removeAll()
             } label: {
@@ -77,6 +80,7 @@ struct ClothesLineView: View {
             }
             .buttonStyle(.plain)
             .help("Geçmişi temizle")
+            .keyStop(state, .clipboard, "clear", order: 1, outset: 0) { clipboard.removeAll() }
         }
         .foregroundStyle(.secondary)
         .padding(.leading, 4)

@@ -4,6 +4,7 @@ import SwiftUI
 /// Hesap makinesi sekmesi: solda geçmiş ve ifade/sonuç, sağda tuş takımı.
 /// Panel odaktayken klavyeyle de yazılabilir (rakamlar, + - * / %, ( ), Enter, Sil, Esc).
 struct CalculatorView: View {
+    let state: NotchState
     @State private var calculator = Calculator()
     @State private var copied = false
     @FocusState private var isFocused: Bool
@@ -81,6 +82,7 @@ struct CalculatorView: View {
             }
             .buttonStyle(.plain)
             .help("Sonucu kopyala")
+            .keyStop(state, .calculator, "copyResult", order: 0, action: copyResult)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)

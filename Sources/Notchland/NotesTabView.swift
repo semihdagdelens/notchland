@@ -6,27 +6,15 @@ struct NotesTabView: View {
     let reminders: RemindersService
     let notes: NotesService
 
-    /// Klavyeyle gezinmede ↓ ↑ ile seçilen eylem; Return onu başlatır.
-    enum Target { case newReminder, newNote }
-    @State private var target: Target?
-
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
-            RemindersColumn(state: state, reminders: reminders, isTargeted: isTargeted(.newReminder))
+            RemindersColumn(state: state, reminders: reminders)
                 .frame(maxWidth: .infinity)
             Rectangle()
                 .fill(Color.white.opacity(0.1))
                 .frame(width: 1)
-            NotesColumn(state: state, notes: notes, isTargeted: isTargeted(.newNote))
+            NotesColumn(state: state, notes: notes)
                 .frame(maxWidth: .infinity)
-        }
-        .onChange(of: state.keyCommand) { _, command in
-            let canAddReminder = reminders.access == .granted
-            switch command?.kind {
-            case .down: target = target == nil && canAddReminder ? .newReminder : .newNote
-            case .up: target = target == .newNote && canAddReminder ? .newReminder : nil
-            default: break
-            }
         }
         .onAppear {
             reminders.activate()
@@ -37,27 +25,18 @@ struct NotesTabView: View {
             NotchPanel.releaseKeyFocus()
         }
     }
-
-    private func isTargeted(_ candidate: Target) -> Bool {
-        state.isKeyboardActive && target == candidate
-    }
 }
 
-/// Klavyeyle seçilen öğenin çerçevesi.
-private struct TargetOutline: ViewModifier {
-    let isTargeted: Bool
-    let cornerRadius: CGFloat
-
-    func body(content: Content) -> some View {
-        content.overlay(
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .strokeBorder(Color.white.opacity(isTargeted ? 0.5 : 0), lineWidth: 1)
-                .animation(.easeOut(duration: 0.12), value: isTargeted)
-        )
-    }
+/// Klavyede üst satır sütun başlıkları ve yeni not, altında yeni hatırlatıcı, en altta öğeler.
+private enum NotesKeyRow {
+    static let headers = 0
+    static let newReminder = 1
+    static let items = 2
 }
 
 private struct ColumnHeader<Accessory: View>: View {
+    let state: NotchState
+    let order: Int
     let title: String
     let symbol: String
     let onOpen: () -> Void
@@ -72,6 +51,7 @@ private struct ColumnHeader<Accessory: View>: View {
             }
             .buttonStyle(.plain)
             .help("\(title) uygulamasında aç")
+            .keyStop(state, .notes, "open\(order)", row: NotesKeyRow.headers, order: order, outset: 1, action: onOpen)
             Spacer(minLength: 0)
             accessory
         }
@@ -83,14 +63,13 @@ private struct ColumnHeader<Accessory: View>: View {
 private struct RemindersColumn: View {
     let state: NotchState
     let reminders: RemindersService
-    let isTargeted: Bool
 
     @State private var draft = ""
     @FocusState private var isFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            ColumnHeader(title: "Hatırlatıcılar", symbol: "checklist", onOpen: reminders.openApp) {
+            ColumnHeader(state: state, order: 0, title: "Hatırlatıcılar", symbol: "checklist", onOpen: reminders.openApp) {
                 if !reminders.items.isEmpty {
                     Text("\(reminders.items.filter { !$0.isCompleted }.count)")
                         .font(.system(size: 11, weight: .semibold).monospacedDigit())
@@ -113,12 +92,18 @@ private struct RemindersColumn: View {
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 } else {
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 5) {
-                            ForEach(reminders.items) { item in
-                                ReminderRow(item: item) { reminders.toggle(item) }
+                    ScrollViewReader { proxy in
+                        ScrollView(.vertical, showsIndicators: false) {
+                            VStack(alignment: .leading, spacing: 5) {
+                                ForEach(Array(reminders.items.enumerated()), id: \.element.id) { index, item in
+                                    ReminderRow(item: item) { reminders.toggle(item) }
+                                        .keyStop(state, .notes, "reminder\(item.id)", row: NotesKeyRow.items + index, order: 0, outset: 0) {
+                                            reminders.toggle(item)
+                                        }
+                                }
                             }
                         }
+                        .scrollsToKeyFocus(state, proxy)
                     }
                 }
                 TextField("Yeni hatırlatıcı", text: $draft)
@@ -127,7 +112,7 @@ private struct RemindersColumn: View {
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(RoundedRectangle(cornerRadius: 6).fill(Color.white.opacity(0.08)))
-                    .modifier(TargetOutline(isTargeted: isTargeted && !isFocused, cornerRadius: 6))
+                    .keyStop(state, .notes, "newReminder", row: NotesKeyRow.newReminder, order: 0, outset: 0) { isFocused = true }
                     .focused($isFocused)
                     .onSubmit {
                         reminders.add(draft)
@@ -141,9 +126,6 @@ private struct RemindersColumn: View {
             }
         }
         .onChange(of: isFocused) { _, focused in state.isEditingText = focused }
-        .onChange(of: state.keyCommand) { _, command in
-            if command?.kind == .enter && isTargeted { isFocused = true }
-        }
     }
 }
 
@@ -192,7 +174,6 @@ private struct ReminderRow: View {
 private struct NotesColumn: View {
     let state: NotchState
     let notes: NotesService
-    let isTargeted: Bool
 
     /// Düzenlenen not: `.some(nil)` yeni not, `.some(id)` mevcut not.
     @State private var editing: String?? = nil
@@ -201,7 +182,7 @@ private struct NotesColumn: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            ColumnHeader(title: "Notlar", symbol: "note.text", onOpen: { notes.open(id: nil) }) {
+            ColumnHeader(state: state, order: 1, title: "Notlar", symbol: "note.text", onOpen: { notes.open(id: nil) }) {
                 if editing == nil {
                     Button {
                         begin(nil, text: "")
@@ -209,10 +190,10 @@ private struct NotesColumn: View {
                         Image(systemName: "square.and.pencil")
                             .font(.system(size: 12, weight: .semibold))
                             .padding(3)
-                            .modifier(TargetOutline(isTargeted: isTargeted, cornerRadius: 5))
                     }
                     .buttonStyle(.plain)
                     .help("Yeni not")
+                    .keyStop(state, .notes, "newNote", row: NotesKeyRow.headers, order: 2, outset: 0) { begin(nil, text: "") }
                 }
             }
 
@@ -229,25 +210,28 @@ private struct NotesColumn: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             } else {
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        ForEach(notes.notes) { note in
-                            NoteRow(note: note)
-                                .contentShape(Rectangle())
-                                .onTapGesture { begin(note.id, text: note.text) }
-                                .contextMenu {
-                                    Button("Notlar'da Aç") { notes.open(id: note.id) }
-                                    Button("Sil", role: .destructive) { notes.delete(id: note.id) }
-                                }
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical, showsIndicators: false) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            ForEach(Array(notes.notes.enumerated()), id: \.element.id) { index, note in
+                                NoteRow(note: note)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { begin(note.id, text: note.text) }
+                                    .contextMenu {
+                                        Button("Notlar'da Aç") { notes.open(id: note.id) }
+                                        Button("Sil", role: .destructive) { notes.delete(id: note.id) }
+                                    }
+                                    .keyStop(state, .notes, "note\(note.id)", row: NotesKeyRow.items + index, order: 1, outset: 0) {
+                                        begin(note.id, text: note.text)
+                                    }
+                            }
                         }
                     }
+                    .scrollsToKeyFocus(state, proxy)
                 }
             }
         }
         .onChange(of: isFocused) { _, focused in state.isEditingText = focused }
-        .onChange(of: state.keyCommand) { _, command in
-            if command?.kind == .enter && isTargeted && editing == nil { begin(nil, text: "") }
-        }
     }
 
     private func editor(for id: String?) -> some View {

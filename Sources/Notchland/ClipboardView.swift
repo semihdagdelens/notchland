@@ -50,7 +50,11 @@ struct ClipboardView: View {
     var body: some View {
         VStack(spacing: 6) {
             if state.showsClothesline {
-                ClothesLineView(state: state, clipboard: clipboard, items: visibleItems, selectedID: selectedItem?.id)
+                ClothesLineView(
+                    state: state, clipboard: clipboard, items: visibleItems,
+                    selectedID: state.isKeyFocused(KeyStop.contentID(.clipboard)) ? selectedItem?.id : nil
+                )
+                .keyContent(.clipboard, row: 1, axis: .horizontal, isEnabled: !visibleItems.isEmpty)
             } else {
             header
             if visibleItems.isEmpty {
@@ -68,7 +72,7 @@ struct ClipboardView: View {
                             ForEach(visibleItems) { item in
                                 ClipboardRow(
                                     state: state, item: item, clipboard: clipboard,
-                                    isSelected: state.isKeyboardActive && item.id == selectedItem?.id
+                                    isSelected: state.isKeyFocused(KeyStop.contentID(.clipboard)) && item.id == selectedItem?.id
                                 )
                                 .id(item.id)
                             }
@@ -79,6 +83,7 @@ struct ClipboardView: View {
                         withAnimation(.easeOut(duration: 0.15)) { proxy.scrollTo(id) }
                     }
                 }
+                .keyContent(.clipboard, row: 1, axis: .vertical)
             }
             }
         }
@@ -91,12 +96,16 @@ struct ClipboardView: View {
         visibleItems.first { $0.id == selection } ?? visibleItems.first
     }
 
-    /// Klavyeyle gezinme: ↑ ↓ seçer, Return yapıştırır, ⌘C kopyalar, ⌫ siler.
+    /// Klavyeyle gezinme: ↑ ↓ seçer (listenin başında ↑ düğmelere çıkar), Return yapıştırır, ⌘C kopyalar, ⌫ siler.
     private func perform(_ command: NotchState.KeyCommand.Kind) {
         let items = visibleItems
         guard let current = selectedItem, let index = items.firstIndex(of: current) else { return }
         switch command {
         case .up, .down:
+            if command == .up && index == 0 && !state.showsClothesline {
+                state.moveKeyFocus(rowBy: -1)
+                return
+            }
             let next = min(max(index + (command == .down ? 1 : -1), 0), items.count - 1)
             selection = items[next].id
         case .enter, .copy:
@@ -119,7 +128,7 @@ struct ClipboardView: View {
             }
             Spacer()
             HStack(spacing: 2) {
-                ForEach(Filter.allCases, id: \.self) { option in
+                ForEach(Array(Filter.allCases.enumerated()), id: \.element) { index, option in
                     Button {
                         withAnimation(.easeOut(duration: 0.15)) { filter = option }
                     } label: {
@@ -134,6 +143,9 @@ struct ClipboardView: View {
                     }
                     .buttonStyle(.plain)
                     .help(option.title)
+                    .keyStop(state, .clipboard, "filter\(index)", order: index, outset: 0) {
+                        withAnimation(.easeOut(duration: 0.15)) { filter = option }
+                    }
                 }
             }
             Button {
@@ -146,6 +158,10 @@ struct ClipboardView: View {
             }
             .buttonStyle(.plain)
             .help("Çamaşır ipi görünümü")
+            // İp görünümündeki karşılığıyla aynı ad: görünüm değişince seçim düğmede kalsın.
+            .keyStop(state, .clipboard, "view", order: Filter.allCases.count, outset: 0) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { state.showsClothesline = true }
+            }
             Button {
                 clipboard.removeAll()
             } label: {
@@ -156,6 +172,7 @@ struct ClipboardView: View {
             }
             .buttonStyle(.plain)
             .help("Geçmişi temizle")
+            .keyStop(state, .clipboard, "clear", order: Filter.allCases.count + 1, outset: 0) { clipboard.removeAll() }
         }
     }
 }

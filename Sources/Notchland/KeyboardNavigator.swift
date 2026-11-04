@@ -83,9 +83,11 @@ final class KeyboardNavigator {
         }
 
         switch state.tab {
-        // Hesap makinesi rakam ve işlem tuşlarını kendisi alır; yön tuşlarını kullanmaz.
+        // Hesap makinesi rakam ve işlem tuşlarını kendisi alır; Return yalnızca bir durak seçiliyken bizim.
         case .calculator:
-            guard key == kVK_LeftArrow || key == kVK_RightArrow else { return false }
+            let isArrow = [kVK_LeftArrow, kVK_RightArrow, kVK_UpArrow, kVK_DownArrow].contains(key)
+            let isStopReturn = state.focusedStop != nil && (key == kVK_Return || key == kVK_ANSI_KeypadEnter)
+            guard isArrow || isStopReturn else { return false }
         case .home:
             if key == kVK_Space {
                 media.playPause()
@@ -103,51 +105,68 @@ final class KeyboardNavigator {
                 AppSettings.shared.translateLyrics.toggle()
                 return true
             }
-        // Dosyalar yan yana dizilidir; ← → sekme değil dosya değiştirir (Tab sekme değiştirir).
-        case .downloads:
-            let kind: NotchState.KeyCommand.Kind? = switch key {
-            case kVK_LeftArrow: .up
-            case kVK_RightArrow: .down
-            case kVK_Return, kVK_ANSI_KeypadEnter: .enter
-            case kVK_ANSI_C where command: .copy
-            default: nil
-            }
-            if let kind {
-                state.keyCommand = NotchState.KeyCommand(kind: kind)
-                return true
-            }
+        // Bir öğe seçili değilse ⌘C rafın tamamını kopyalar.
         case .shelf:
-            if command && key == kVK_ANSI_C {
+            if command && key == kVK_ANSI_C && state.focusedStop?.onCopy == nil {
                 state.keyCommand = NotchState.KeyCommand(kind: .copy)
-                return true
-            }
-        // Panoda liste, notlarda yeni hatırlatıcı / yeni not arasında seçim.
-        case .clipboard, .notes:
-            let isClipboard = state.tab == .clipboard
-            let kind: NotchState.KeyCommand.Kind? = switch key {
-            case kVK_UpArrow: .up
-            case kVK_DownArrow: .down
-            // İpte kartlar yan yana asılıdır; ← → sekme değil kart değiştirir.
-            case kVK_LeftArrow where isClipboard && state.showsClothesline: .up
-            case kVK_RightArrow where isClipboard && state.showsClothesline: .down
-            case kVK_Return, kVK_ANSI_KeypadEnter: .enter
-            case kVK_Delete, kVK_ForwardDelete where isClipboard: .delete
-            case kVK_ANSI_C where command && isClipboard: .copy
-            default: nil
-            }
-            if let kind {
-                state.keyCommand = NotchState.KeyCommand(kind: kind)
                 return true
             }
         default:
             break
         }
 
-        if key == kVK_LeftArrow || key == kVK_RightArrow {
-            state.selectAdjacent(key == kVK_RightArrow ? 1 : -1)
-            return true
+        return handleStop(key: key, command: command)
+    }
+
+    /// Sayfanın durakları arasında gezinme; kurallar `KeyStop`'ta.
+    private func handleStop(key: Int, command: Bool) -> Bool {
+        let stop = state.focusedStop
+        let axis = stop?.contentAxis
+        let send = { [state] (kind: NotchState.KeyCommand.Kind) in
+            state.keyCommand = NotchState.KeyCommand(kind: kind)
         }
-        return false
+
+        switch key {
+        case kVK_DownArrow, kVK_UpArrow:
+            let isDown = key == kVK_DownArrow
+            if axis == .vertical {
+                send(isDown ? .down : .up)
+            } else {
+                state.moveKeyFocus(rowBy: isDown ? 1 : -1)
+            }
+            return true
+        case kVK_LeftArrow, kVK_RightArrow:
+            let offset = key == kVK_RightArrow ? 1 : -1
+            if axis == .horizontal {
+                send(offset > 0 ? .down : .up)
+            } else if !state.moveKeyFocus(orderBy: offset) && stop?.clampsAtEdge != true {
+                state.selectAdjacent(offset)
+            }
+            return true
+        case kVK_Return, kVK_ANSI_KeypadEnter:
+            if axis != nil { send(.enter) } else { stop?.action() }
+            return true
+        case kVK_Delete, kVK_ForwardDelete:
+            if axis != nil {
+                send(.delete)
+                return true
+            }
+            guard let onDelete = stop?.onDelete else { return false }
+            // Silinen öğeyle odak kaybolmasın, komşusuna geçsin.
+            if !state.moveKeyFocus(orderBy: 1) { state.moveKeyFocus(orderBy: -1) }
+            onDelete()
+            return true
+        case kVK_ANSI_C where command:
+            if axis != nil {
+                send(.copy)
+                return true
+            }
+            guard let onCopy = stop?.onCopy else { return false }
+            onCopy()
+            return true
+        default:
+            return false
+        }
     }
 }
 

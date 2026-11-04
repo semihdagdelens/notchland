@@ -108,7 +108,7 @@ struct NotchView: View {
                             case .home:
                                 HomeContent(state: state, media: media, weather: weather, lyrics: lyrics, koci: koci, battery: battery)
                             case .calendar:
-                                CalendarTabView(calendar: calendar, weather: weather)
+                                CalendarTabView(state: state, calendar: calendar, weather: weather)
                             case .clipboard:
                                 ClipboardView(state: state, clipboard: clipboard)
                             case .stats:
@@ -116,9 +116,9 @@ struct NotchView: View {
                             case .notes:
                                 NotesTabView(state: state, reminders: reminders, notes: notes)
                             case .calculator:
-                                CalculatorView()
+                                CalculatorView(state: state)
                             case .wrapped:
-                                WrappedView(history: media.history)
+                                WrappedView(state: state, history: media.history)
                             case .downloads:
                                 DownloadsView(state: state, downloads: downloads, shelf: shelf)
                             case .shelf:
@@ -129,6 +129,7 @@ struct NotchView: View {
                         .id(contentID)
                         .transition(.blurFade(scale: 0.97))
                         .frame(maxHeight: .infinity)
+                        .onPreferenceChange(KeyStopsKey.self) { state.keyStops = $0.stops }
                         if AppSettings.shared.tabBarPlacement == .bottom {
                             TabStrip(state: state).frame(height: 20)
                         }
@@ -214,7 +215,7 @@ private struct TabBar: View {
                     Image(systemName: "keyboard")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(.white.opacity(0.45))
-                        .help("Klavyeyle gezinme: ← → sekmeler, Esc kapatır")
+                        .help("Klavyeyle gezinme: ← → sekmeler, ↓ sayfadaki düğmeler, Esc kapatır")
                         .transition(.opacity)
                 }
                 if let device = headphones.current, let level = device.budsLevel {
@@ -318,6 +319,10 @@ private struct NowPlayingView: View {
     let state: NotchState
     let lyrics: LyricsService
 
+    private func toggleLyrics() {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { state.showLyrics.toggle() }
+    }
+
     /// Sözler açıkken ve Türkçe değilken çeviri düğmesi görünür.
     private var showsTranslateButton: Bool {
         guard state.showLyrics, case .found = lyrics.state else { return false }
@@ -353,17 +358,19 @@ private struct NowPlayingView: View {
                 }
                 HStack(spacing: 22) {
                     MediaButton(symbol: "backward.fill") { media.previous() }
+                        .keyStop(state, .home, "previous", order: 0) { media.previous() }
                     MediaButton(symbol: track.isPlaying ? "pause.fill" : "play.fill") { media.playPause() }
+                        .keyStop(state, .home, "playPause", order: 1) { media.playPause() }
                     MediaButton(symbol: "forward.fill") { media.next() }
-                    Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { state.showLyrics.toggle() }
-                    } label: {
+                        .keyStop(state, .home, "next", order: 2) { media.next() }
+                    Button(action: toggleLyrics) {
                         Image(systemName: "quote.bubble.fill")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(state.showLyrics ? Color.white : Color.white.opacity(0.4))
                     }
                     .buttonStyle(.plain)
                     .help("Şarkı sözleri")
+                    .keyStop(state, .home, "lyrics", order: 3, action: toggleLyrics)
                     if showsTranslateButton {
                         Button {
                             AppSettings.shared.translateLyrics.toggle()
@@ -374,6 +381,7 @@ private struct NowPlayingView: View {
                         }
                         .buttonStyle(.plain)
                         .help("Türkçe çeviri")
+                        .keyStop(state, .home, "translate", order: 4) { AppSettings.shared.translateLyrics.toggle() }
                         .transition(.opacity)
                     }
                 }

@@ -95,7 +95,7 @@ struct GeneralSettings: View {
             } header: {
                 Text("Klavyeyle gezinme")
             } footer: {
-                Text("Kısayol notch'u açar. ← → veya Tab ile sekme değiştir, ⌘1… ile sekmeye atla, Esc ile kapat. Ana sayfada Space oynat/duraklat, ⌘← ⌘→ önceki/sonraki parça, L şarkı sözleri, T Türkçe çeviri. Panoda ↑ ↓ ile seç, Return yapıştırır, ⌘C kopyalar, ⌫ siler. Notlarda ↓ yeni hatırlatıcıyı, bir daha ↓ yeni notu seçer; Return başlatır.")
+                Text("Kısayol notch'u açar. ← → veya Tab ile sekme değiştir, ⌘1… ile sekmeye atla, Esc ile kapat. Ana sayfada Space oynat/duraklat, ⌘← ⌘→ önceki/sonraki parça, L şarkı sözleri, T Türkçe çeviri. Her sayfada ↓ önce düğmelere, bir daha ↓ öğelere iner; ↑ geri çıkar, ← → düğmeler arasında gezer, satırın ucunda sekme değiştirir, Return seçileni çalıştırır. Pano, indirilenler ve raf öğelerinde ⌘C kopyalar; pano ve rafta ⌫ siler.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 

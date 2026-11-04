@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Notchland Wrapped: seçilen dönemde ne kadar ve neyi dinlediğin.
 struct WrappedView: View {
+    let state: NotchState
     let history: ListeningHistory
     @AppStorage("wrappedPeriod") private var period: ListeningHistory.Period = .week
 
@@ -36,7 +37,7 @@ struct WrappedView: View {
 
     private func overview(_ summary: ListeningHistory.Summary) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            PeriodPicker(selection: $period)
+            PeriodPicker(state: state, selection: $period)
                 .padding(.bottom, 4)
             Text(Self.duration(summary.seconds))
                 .font(.system(size: 28, weight: .heavy, design: .rounded))
@@ -144,11 +145,12 @@ struct WrappedView: View {
 }
 
 private struct PeriodPicker: View {
+    let state: NotchState
     @Binding var selection: ListeningHistory.Period
 
     var body: some View {
         HStack(spacing: 2) {
-            ForEach(ListeningHistory.Period.allCases) { period in
+            ForEach(Array(ListeningHistory.Period.allCases.enumerated()), id: \.element.id) { index, period in
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { selection = period }
                 } label: {
@@ -164,6 +166,9 @@ private struct PeriodPicker: View {
                         .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
+                .keyStop(state, .wrapped, "period\(index)", order: index, outset: 0) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { selection = period }
+                }
             }
         }
         .padding(2)

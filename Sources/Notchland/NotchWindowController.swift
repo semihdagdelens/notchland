@@ -303,6 +303,8 @@ final class NotchWindowController {
         if let tab { state.select(tab) }
         state.showsShortcuts = showingShortcuts
         state.showsClothesline = tab == .clipboard
+        // Pano kısayolu hızlı yapıştırma içindir: ip doğrudan kartlarda başlar.
+        state.focusedKeyStop = tab == .clipboard ? KeyStop.contentID(.clipboard) : nil
         state.isKeyboardActive = true
         setExpanded(true)
         panel.makeKeyAndOrderFront(nil)
@@ -610,13 +612,19 @@ final class NotchState {
         }
     }
 
-    var isExpanded = false
+    var isExpanded = false {
+        didSet { if !isExpanded { focusedKeyStop = nil } }
+    }
     /// Notlar sekmesinde bir metin alanı odakta (notch fare çıksa da açık kalır).
     var isEditingText = false
     /// Notch kısayolla açıldı; panel klavye odağında, tuşlarla gezinilir.
     var isKeyboardActive = false
     /// Klavyeyle gezinmede içeriğe (pano listesi) iletilen son komut.
     var keyCommand: KeyCommand?
+    /// Klavyeyle seçili durak; nil iken odak sekmelerdedir (sekme değişince veya notch kapanınca sıfırlanır).
+    var focusedKeyStop: String?
+    /// Sayfadaki görünen duraklar (bkz. `KeyStop`).
+    @ObservationIgnored var keyStops: [KeyStop] = []
     /// Notch'u kapatır (ör. panodan Return ile yapıştırmadan önce).
     @ObservationIgnored var onClose: (() -> Void)?
     /// Kısayol tablosu gösteriliyor (sekme değiştirilince kapanır).
@@ -628,7 +636,9 @@ final class NotchState {
     /// Fare kapalı notch'un üzerinde (açılma gecikmesi sırasında hafif büyüme).
     var isHovering = false
     var closedSize = CGSize(width: 200, height: 32)
-    var tab: Tab = .home
+    var tab: Tab = .home {
+        didSet { if tab != oldValue { focusedKeyStop = nil } }
+    }
     /// Ana sayfada şarkı sözleri paneli açık mı (kalıcı).
     var showLyrics = UserDefaults.standard.bool(forKey: "showLyrics") {
         didSet { UserDefaults.standard.set(showLyrics, forKey: "showLyrics") }

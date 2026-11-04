@@ -34,13 +34,23 @@ struct ShelfView: View {
                 .foregroundStyle(.secondary)
             } else {
                 HStack(spacing: 0) {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 10) {
-                            ForEach(shelf.items) { item in
-                                ShelfItemView(item: item, state: state, shelf: shelf)
+                    ScrollViewReader { proxy in
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 10) {
+                                ForEach(Array(shelf.items.enumerated()), id: \.element.id) { index, item in
+                                    ShelfItemView(item: item, state: state, shelf: shelf)
+                                        .keyStop(
+                                            state, .shelf, "item\(item.id)", row: 1, order: index, outset: 0, clampsAtEdge: true,
+                                            onCopy: { Sharing.copy([item.url]) },
+                                            onDelete: { shelf.remove(item) }
+                                        ) {
+                                            shelf.open(item)
+                                        }
+                                }
                             }
+                            .padding(.horizontal, 12)
                         }
-                        .padding(.horizontal, 12)
+                        .scrollsToKeyFocus(state, proxy)
                     }
                     VStack(spacing: 0) {
                         BulkDragHandle(urls: shelf.items.map(\.url)) {
@@ -61,6 +71,7 @@ struct ShelfView: View {
                         }
                         .buttonStyle(.plain)
                         .help("Tümünü kopyala (⌘V ile yapıştır)")
+                        .keyStop(state, .shelf, "copyAll", order: 0, outset: 0, action: copyAll)
                         Button {
                             shelf.airDrop(shelf.items)
                         } label: {
@@ -70,6 +81,7 @@ struct ShelfView: View {
                         }
                         .buttonStyle(.plain)
                         .help("Tümünü AirDrop ile gönder")
+                        .keyStop(state, .shelf, "airDrop", order: 1, outset: 0) { shelf.airDrop(shelf.items) }
                         Button {
                             shelf.removeAll()
                         } label: {
@@ -80,13 +92,14 @@ struct ShelfView: View {
                         }
                         .buttonStyle(.plain)
                         .help("Rafı temizle")
+                        .keyStop(state, .shelf, "clear", order: 2, outset: 0) { shelf.removeAll() }
                     }
                     .padding(.trailing, 6)
                 }
             }
         }
         .animation(.easeOut(duration: 0.15), value: isDropTargeted)
-        // Klavyeyle gezinmede ⌘C rafın tamamını kopyalar.
+        // Klavyeyle gezinmede öğe seçili değilken ⌘C rafın tamamını kopyalar.
         .onChange(of: state.keyCommand) { _, command in
             if command?.kind == .copy, !shelf.items.isEmpty { copyAll() }
         }

@@ -28,6 +28,7 @@ swift scripts/make-icon.swift icon.png   # ikonu 1024px çizer; ardından iconse
 - `AppSettings.shared`: tüm ayarlar; her özellik `didSet` ile UserDefaults'a yazar. Yeni ayar eklerken aynı kalıbı (`AppSettings.value(key, varsayılan)` + `save`) izle ve `SettingsView`'a ekle.
 - Yeni sekme eklemek: `NotchState.Tab`'a case, `isTabEnabled`, `AppSettings`'te `showXTab`, `NotchView`'daki switch, gerekiyorsa `KeyboardNavigator`; kısayolu için `AppShortcut`'a case.
 - Format çarkı (`FormatWheel`, `FormatConverter`) çentiğe sığmadığından kendi panelinde, imlecin çevresinde açılır; panel boyutu sınırı `NotchPanel` içindir. Dönüştürme macOS araçlarıyla yapılır (ImageIO, AVFoundation, `afconvert`, `textutil`, PDFKit); ffmpeg isteğe bağlıdır, Homebrew'dan bulunur ve pakete gömülmez (GPL).
+- Klavyeyle gezinme (`KeyboardNavigator`, `KeyStop`): sayfaya eklenen her düğme `.keyStop` ile durak olur; ↓ ↑ satır, ← → satır içi değiştirir, satırın ucunda sekmeye geçer. Tembel listeler `.keyContent` ile tek durak sayılır ve seçimi `keyCommand` ile yürütür.
 
 ### Belgelenmemiş / özel API'ler
 
