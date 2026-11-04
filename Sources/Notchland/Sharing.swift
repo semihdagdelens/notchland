@@ -16,6 +16,13 @@ enum Sharing {
 
     private static let delegate = Delegate()
 
+    /// Dosyaları panoya koyar; ⌘V ile hepsi birden yapıştırılır.
+    static func copy(_ urls: [URL]) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.writeObjects(urls as [NSURL])
+    }
+
     static func airDrop(_ urls: [URL]) {
         guard !urls.isEmpty, let service = NSSharingService(named: .sendViaAirDrop) else { return }
         guard service.canPerform(withItems: urls) else {

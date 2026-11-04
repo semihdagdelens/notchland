@@ -5,6 +5,15 @@ struct ShelfView: View {
     let shelf: ShelfStore
     let isDropTargeted: Bool
 
+    @State private var didCopy = false
+
+    /// Yapıldığı görünsün diye düğme kısa süre onay işaretine döner.
+    private func copyAll() {
+        Sharing.copy(shelf.items.map(\.url))
+        didCopy = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { didCopy = false }
+    }
+
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 16)
@@ -33,13 +42,31 @@ struct ShelfView: View {
                         }
                         .padding(.horizontal, 12)
                     }
-                    VStack(spacing: 2) {
+                    VStack(spacing: 0) {
+                        BulkDragHandle(urls: shelf.items.map(\.url)) {
+                            state.isDraggingFromShelf = true
+                        } label: {
+                            Image(systemName: "square.stack.3d.up.fill")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 30, height: 28)
+                        }
+                        .frame(width: 30, height: 28)
+                        .help("Tümünü başka yere sürükle")
+                        Button(action: copyAll) {
+                            Image(systemName: didCopy ? "checkmark" : "doc.on.doc")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(didCopy ? Color.green : Color.secondary)
+                                .frame(width: 30, height: 26)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Tümünü kopyala (⌘V ile yapıştır)")
                         Button {
                             shelf.airDrop(shelf.items)
                         } label: {
-                            AirDropIcon(size: 16)
+                            AirDropIcon(size: 15)
                                 .foregroundStyle(.secondary)
-                                .frame(width: 36, height: 36)
+                                .frame(width: 30, height: 26)
                         }
                         .buttonStyle(.plain)
                         .help("Tümünü AirDrop ile gönder")
@@ -47,9 +74,9 @@ struct ShelfView: View {
                             shelf.removeAll()
                         } label: {
                             Image(systemName: "trash")
-                                .font(.system(size: 13, weight: .semibold))
+                                .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(.secondary)
-                                .frame(width: 36, height: 36)
+                                .frame(width: 30, height: 26)
                         }
                         .buttonStyle(.plain)
                         .help("Rafı temizle")
@@ -59,6 +86,10 @@ struct ShelfView: View {
             }
         }
         .animation(.easeOut(duration: 0.15), value: isDropTargeted)
+        // Klavyeyle gezinmede ⌘C rafın tamamını kopyalar.
+        .onChange(of: state.keyCommand) { _, command in
+            if command?.kind == .copy, !shelf.items.isEmpty { copyAll() }
+        }
     }
 }
 
@@ -121,6 +152,7 @@ private struct ShelfItemView: View {
         .contextMenu {
             Button("Aç") { shelf.open(item) }
             Button("Finder'da Göster") { shelf.revealInFinder(item) }
+            Button("Kopyala") { Sharing.copy([item.url]) }
             Button("AirDrop ile Gönder") { shelf.airDrop([item]) }
             if FormatFamily(url: item.url) != nil {
                 Button("Formatını Değiştir…") { state.onConvert?([item.url]) }
@@ -129,5 +161,61 @@ private struct ShelfItemView: View {
             Button("Raftan Kaldır") { shelf.remove(item) }
         }
         .help(item.url.path)
+    }
+}
+
+/// SwiftUI `onDrag` tek öğe sürükler; birden çok dosya için AppKit sürükleme oturumu gerekir.
+struct BulkDragHandle<Label: View>: NSViewRepresentable {
+    let urls: [URL]
+    let onBegin: () -> Void
+    @ViewBuilder let label: () -> Label
+
+    func makeNSView(context: Context) -> HandleView {
+        let view = HandleView()
+        let hosting = NSHostingView(rootView: label())
+        hosting.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(hosting)
+        NSLayoutConstraint.activate([
+            hosting.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            hosting.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+        ])
+        return view
+    }
+
+    func updateNSView(_ view: HandleView, context: Context) {
+        view.urls = urls
+        view.onBegin = onBegin
+    }
+
+    final class HandleView: NSView, NSDraggingSource {
+        var urls: [URL] = []
+        var onBegin: (() -> Void)?
+
+        /// Olaylar içteki SwiftUI görünümüne değil, sürüklemeyi başlatan bu görünüme gelsin.
+        override func hitTest(_ point: NSPoint) -> NSView? {
+            frame.contains(point) ? self : nil
+        }
+
+        override func mouseDown(with event: NSEvent) {}
+
+        override func mouseDragged(with event: NSEvent) {
+            guard !urls.isEmpty else { return }
+            onBegin?()
+            let origin = convert(event.locationInWindow, from: nil)
+            let items = urls.enumerated().map { index, url -> NSDraggingItem in
+                let item = NSDraggingItem(pasteboardWriter: url as NSURL)
+                // Dosyalar imlecin altında deste gibi hafifçe kayarak durur.
+                let offset = CGFloat(min(index, 4)) * 6
+                let frame = NSRect(x: origin.x - 24 + offset, y: origin.y - 24 - offset, width: 48, height: 48)
+                item.setDraggingFrame(frame, contents: FileIcon.icon(forFile: url.path))
+                return item
+            }
+            beginDraggingSession(with: items, event: event, source: self)
+        }
+
+        /// Dosyalar taşınmaz, kopyalanır: raftakiler ve asılları yerinde kalır.
+        func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
+            context == .outsideApplication ? .copy : []
+        }
     }
 }

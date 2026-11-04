@@ -103,6 +103,11 @@ final class KeyboardNavigator {
                 AppSettings.shared.translateLyrics.toggle()
                 return true
             }
+        case .shelf:
+            if command && key == kVK_ANSI_C {
+                state.keyCommand = NotchState.KeyCommand(kind: .copy)
+                return true
+            }
         // Panoda liste, notlarda yeni hatırlatıcı / yeni not arasında seçim.
         case .clipboard, .notes:
             let isClipboard = state.tab == .clipboard
