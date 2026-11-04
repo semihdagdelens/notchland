@@ -48,8 +48,8 @@ struct SettingsView: View {
     }
 }
 
-private struct GeneralSettings: View {
-    @Bindable private var settings = AppSettings.shared
+struct GeneralSettings: View {
+    @Bindable fileprivate var settings = AppSettings.shared
 
     var body: some View {
         Form {
@@ -81,6 +81,9 @@ private struct GeneralSettings: View {
                         settings.panelHeight = AppSettings.panelHeightRange.lowerBound
                     }
                 }
+                Picker("Sekmelerin yeri", selection: $settings.tabBarPlacement) {
+                    ForEach(AppSettings.TabBarPlacement.allCases) { Text($0.title).tag($0) }
+                }
                 Toggle("Açılırken titreşim (trackpad)", isOn: $settings.hapticFeedback)
                 Toggle("Koci (notch'ta yaşayan piksel kedi)", isOn: $settings.showKoci)
             }
@@ -96,18 +99,84 @@ private struct GeneralSettings: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
 
-            Section("Sekmeler") {
-                Toggle("Takvim", isOn: $settings.showCalendarTab)
-                Toggle("Pano geçmişi", isOn: $settings.showClipboardTab)
-                Toggle("Sistem istatistikleri", isOn: $settings.showStatsTab)
-                Toggle("Hatırlatıcılar ve notlar", isOn: $settings.showNotesTab)
-                Toggle("Hesap makinesi", isOn: $settings.showCalculatorTab)
-                Toggle("Dinleme özeti (Wrapped)", isOn: $settings.showWrappedTab)
-                Toggle("Dosya rafı", isOn: $settings.showShelfTab)
-                Toggle("Son indirilenler", isOn: $settings.showDownloadsTab)
+            Section {
+                ForEach(Array(NotchState.Tab.ordered.enumerated()), id: \.element) { index, tab in
+                    TabRow(tab: tab, canMoveUp: index > 0, canMoveDown: index < NotchState.Tab.allCases.count - 1) { offset in
+                        move(tab, by: offset)
+                    }
+                }
+                if !settings.tabOrder.isEmpty {
+                    Button("Varsayılan sıraya dön") { settings.tabOrder = [] }
+                }
+            } header: {
+                Text("Sekmeler")
+            } footer: {
+                Text("Oklar sırayı değiştirir; klavyede ⌘1… da bu sırayı izler.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+extension GeneralSettings {
+    /// Kayıtlı sıra hep tüm sekmeleri içerir; böylece gizli sekmenin yeri de korunur.
+    private func move(_ tab: NotchState.Tab, by offset: Int) {
+        var order = NotchState.Tab.ordered
+        guard let index = order.firstIndex(of: tab), order.indices.contains(index + offset) else { return }
+        order.swapAt(index, index + offset)
+        settings.tabOrder = order.map(\.rawValue)
+    }
+}
+
+private struct TabRow: View {
+    let tab: NotchState.Tab
+    let canMoveUp: Bool
+    let canMoveDown: Bool
+    let onMove: (Int) -> Void
+    @Bindable private var settings = AppSettings.shared
+
+    /// Ana sayfa kapatılamaz: başka sekme kalmazsa notch boş açılırdı.
+    private var isOn: Binding<Bool>? {
+        switch tab {
+        case .home: nil
+        case .clipboard: $settings.showClipboardTab
+        case .shelf: $settings.showShelfTab
+        case .downloads: $settings.showDownloadsTab
+        case .calendar: $settings.showCalendarTab
+        case .notes: $settings.showNotesTab
+        case .calculator: $settings.showCalculatorTab
+        case .wrapped: $settings.showWrappedTab
+        case .stats: $settings.showStatsTab
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            arrow("chevron.up", enabled: canMoveUp, help: "Yukarı taşı") { onMove(-1) }
+            arrow("chevron.down", enabled: canMoveDown, help: "Aşağı taşı") { onMove(1) }
+            Image(systemName: tab.symbol)
+                .foregroundStyle(.secondary)
+                .frame(width: 18)
+            if let isOn {
+                Toggle(tab.title, isOn: isOn)
+            } else {
+                Text(tab.title)
+            }
+        }
+    }
+
+    private func arrow(_ symbol: String, enabled: Bool, help: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 10, weight: .semibold))
+                .frame(width: 18, height: 18)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .foregroundStyle(enabled ? Color.primary : Color.secondary.opacity(0.35))
+        .help(help)
     }
 }
 

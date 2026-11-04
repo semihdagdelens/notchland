@@ -44,7 +44,10 @@ final class NotchPanel: NSPanel {
 final class NotchWindowController {
     /// Görünümler bunu gövdelerinde okuduğu için ayar değişince kendiliğinden yeniden çizilir.
     static var expandedSize: CGSize {
-        CGSize(width: AppSettings.shared.panelWidth, height: AppSettings.shared.panelHeight)
+        let settings = AppSettings.shared
+        // Sekmeler alttayken panel o kadar uzar; içerik alanı küçülmez.
+        let bottomBar: CGFloat = settings.tabBarPlacement == .bottom ? 24 : 0
+        return CGSize(width: settings.panelWidth, height: settings.panelHeight + bottomBar)
     }
     /// Dikte paneli; panel çerçevesi `expandedSize`'a göre olduğundan en küçük panelden büyük olmamalı.
     static let dictationSize = CGSize(width: 520, height: 120)
@@ -82,7 +85,11 @@ final class NotchWindowController {
     private var pendingExpand: DispatchWorkItem?
     /// Ayarlarda boyut değişirken panel önizleme için açık tutulur.
     private var sizePreviewEnd: DispatchWorkItem?
-    private var lastPanelSize = NotchWindowController.expandedSize
+    private var lastPanelLayout = NotchWindowController.panelLayout
+    /// Değişince önizleme açılan görünüş ayarları: boyut, sekmelerin yeri ve sırası.
+    private static var panelLayout: String {
+        "\(expandedSize) \(AppSettings.shared.tabBarPlacement) \(AppSettings.shared.tabOrder)"
+    }
 
     /// Fare basıldığında sürükleme panosunun sayacı; değişirse içerik sürükleniyor demektir.
     private var dragChangeCountAtMouseDown = NSPasteboard(name: .drag).changeCount
@@ -136,13 +143,13 @@ final class NotchWindowController {
     // MARK: - Panel boyutu
 
     private func observePanelSize() {
-        let size = withObservationTracking {
-            Self.expandedSize
+        let layout = withObservationTracking {
+            Self.panelLayout
         } onChange: { [weak self] in
             DispatchQueue.main.async { self?.observePanelSize() }
         }
-        guard size != lastPanelSize else { return }
-        lastPanelSize = size
+        guard layout != lastPanelLayout else { return }
+        lastPanelLayout = layout
         reposition()
         previewPanelSize()
     }
@@ -557,7 +564,7 @@ final class NotchWindowController {
 @Observable
 final class NotchState {
     /// Sıra, sekme çubuğunun ve klavyeyle gezinmenin sırasıdır: en sık kullanılan başta.
-    enum Tab: Hashable, CaseIterable {
+    enum Tab: String, Hashable, CaseIterable {
         case home
         case clipboard
         case shelf
@@ -567,6 +574,26 @@ final class NotchState {
         case calculator
         case wrapped
         case stats
+
+        /// Ayarlardaki sıra; sonradan eklenen sekmeler kayıtlı sıranın sonuna düşer.
+        static var ordered: [Tab] {
+            let saved = AppSettings.shared.tabOrder.compactMap(Tab.init(rawValue:))
+            return saved + allCases.filter { !saved.contains($0) }
+        }
+
+        var title: String {
+            switch self {
+            case .home: "Ana sayfa"
+            case .clipboard: "Pano geçmişi"
+            case .shelf: "Dosya rafı"
+            case .downloads: "Son indirilenler"
+            case .calendar: "Takvim"
+            case .notes: "Hatırlatıcılar ve notlar"
+            case .calculator: "Hesap makinesi"
+            case .wrapped: "Dinleme özeti (Wrapped)"
+            case .stats: "Sistem istatistikleri"
+            }
+        }
 
         var symbol: String {
             switch self {

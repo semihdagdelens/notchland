@@ -12,6 +12,20 @@ final class AppSettings {
         var title: String { self == .celsius ? "Santigrat (°C)" : "Fahrenhayt (°F)" }
     }
 
+    /// Sekme düğmelerinin açık paneldeki yeri.
+    enum TabBarPlacement: String, CaseIterable, Identifiable {
+        case left, right, bottom
+        var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .left: "Çentiğin solunda"
+            case .right: "Çentiğin sağında"
+            case .bottom: "Panelin altında"
+            }
+        }
+    }
+
     enum DictationHotKey: String, CaseIterable, Identifiable {
         case off, optionSpace, shiftOptionSpace, controlOptionSpace, controlOptionD
         var id: String { rawValue }
@@ -82,6 +96,11 @@ final class AppSettings {
     static let panelHeightRange = 190.0...380.0
     var panelWidth = AppSettings.value("panelWidth", AppSettings.panelWidthRange.lowerBound) { didSet { save("panelWidth", panelWidth) } }
     var panelHeight = AppSettings.value("panelHeight", AppSettings.panelHeightRange.lowerBound) { didSet { save("panelHeight", panelHeight) } }
+    var tabBarPlacement = TabBarPlacement(rawValue: AppSettings.value("tabBarPlacement", "left")) ?? .left {
+        didSet { save("tabBarPlacement", tabBarPlacement.rawValue) }
+    }
+    /// Sekme sırası (`NotchState.Tab.rawValue`); boşsa varsayılan sıra.
+    var tabOrder = AppSettings.value("tabOrder", [String]()) { didSet { save("tabOrder", tabOrder) } }
     /// Ayarlardan kapatılan genel kısayollar (`AppShortcut.rawValue`).
     var disabledShortcuts = AppSettings.value("disabledShortcuts", [String]()) {
         didSet { save("disabledShortcuts", disabledShortcuts) }

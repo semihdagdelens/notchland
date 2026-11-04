@@ -129,9 +129,12 @@ struct NotchView: View {
                         .id(contentID)
                         .transition(.blurFade(scale: 0.97))
                         .frame(maxHeight: .infinity)
+                        if AppSettings.shared.tabBarPlacement == .bottom {
+                            TabStrip(state: state).frame(height: 20)
+                        }
                     }
                     .padding(.horizontal, 24)
-                    .padding(.bottom, 16)
+                    .padding(.bottom, AppSettings.shared.tabBarPlacement == .bottom ? 10 : 16)
                     .foregroundStyle(.white)
                     .environment(\.colorScheme, .dark)
                     .transition(.notchContent)
@@ -186,17 +189,27 @@ private struct TabBar: View {
     let closedWidth: CGFloat
 
     var body: some View {
+        let placement = AppSettings.shared.tabBarPlacement
         HStack(spacing: 0) {
-            // Tüm sekmeler açıkken düğmeler notch'un sol kulağına sığsın; taşarsa notch'un altına kayıyorlar.
-            HStack(spacing: state.enabledTabs.count > 8 ? 3 : state.enabledTabs.count > 7 ? 7 : 10) {
-                ForEach(state.enabledTabs, id: \.self) { tab in
-                    TabButton(symbol: tab.symbol, isSelected: state.tab == tab) { state.select(tab) }
+            Group {
+                switch placement {
+                case .left: TabStrip(state: state)
+                case .right: status
+                case .bottom: Color.clear
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             // Gerçek notch'un altında kalan bölge boş kalır.
             Color.clear.frame(width: closedWidth)
-            HStack(spacing: 12) {
+            Group {
+                if placement == .right { TabStrip(state: state) } else { status }
+            }
+            .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+    }
+
+    private var status: some View {
+        HStack(spacing: 12) {
                 if state.isKeyboardActive {
                     Image(systemName: "keyboard")
                         .font(.system(size: 11, weight: .semibold))
@@ -214,8 +227,24 @@ private struct TabBar: View {
                     .help(device.caseLevel.map { "\(device.name) · Kutu %\($0)" } ?? device.name)
                 }
                 BatteryBadge(battery: battery)
+        }
+    }
+}
+
+private struct TabStrip: View {
+    let state: NotchState
+
+    /// Kulakta tüm sekmeler sığsın diye sıkışır (taşarsa notch'un altına kayarlar); altta yer boldur.
+    private var spacing: CGFloat {
+        if AppSettings.shared.tabBarPlacement == .bottom { return 18 }
+        return state.enabledTabs.count > 8 ? 3 : state.enabledTabs.count > 7 ? 7 : 10
+    }
+
+    var body: some View {
+        HStack(spacing: spacing) {
+            ForEach(state.enabledTabs, id: \.self) { tab in
+                TabButton(symbol: tab.symbol, isSelected: state.tab == tab) { state.select(tab) }
             }
-            .frame(maxWidth: .infinity, alignment: .trailing)
         }
     }
 }

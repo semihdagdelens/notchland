@@ -160,7 +160,7 @@ extension NotchState {
     }
 
     /// Ayarlarda açık sekmeler, sekme çubuğundaki sırayla.
-    var enabledTabs: [Tab] { Tab.allCases.filter(isTabEnabled) }
+    var enabledTabs: [Tab] { Tab.ordered.filter(isTabEnabled) }
 
     /// Açık sekmeler arasında (başa/sona sararak) ileri veya geri gider.
     func selectAdjacent(_ offset: Int) {
