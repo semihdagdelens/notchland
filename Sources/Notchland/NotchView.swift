@@ -373,7 +373,8 @@ private struct NowPlayingView: View {
                 if track.duration > 0 {
                     ProgressBar(track: track)
                 }
-                HStack(spacing: 22) {
+                // Sözler açıkken sütun dardır; geniş aralıkla düğmeler taşıp sözlerin üstüne biner.
+                HStack(spacing: state.showLyrics ? 12 : 22) {
                     MediaButton(symbol: "backward.fill") { media.previous() }
                         .keyStop(state, .home, "previous", order: 0) { media.previous() }
                     MediaButton(symbol: track.isPlaying ? "pause.fill" : "play.fill") { media.playPause() }

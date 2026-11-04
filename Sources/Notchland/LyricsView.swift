@@ -87,11 +87,11 @@ private struct SyncedLyricsList: View, Equatable {
                         VStack(alignment: .leading, spacing: 1) {
                             Text(line.text)
                                 .font(.system(size: isCurrent ? 15 : 13, weight: isCurrent ? .bold : .medium))
-                                .foregroundStyle(isCurrent ? Color.white : Color.white.opacity(0.35))
+                                .foregroundStyle(isCurrent ? Color.white : Color.white.opacity(0.55))
                             if let translation = translations[line.id] {
                                 Text(translation)
                                     .font(.system(size: isCurrent ? 12 : 11, weight: .medium))
-                                    .foregroundStyle(Color.white.opacity(isCurrent ? 0.6 : 0.22))
+                                    .foregroundStyle(Color.white.opacity(isCurrent ? 0.7 : 0.4))
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -106,8 +106,8 @@ private struct SyncedLyricsList: View, Equatable {
             }
             .mask(
                 LinearGradient(
-                    stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.25),
-                            .init(color: .black, location: 0.75), .init(color: .clear, location: 1)],
+                    stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.12),
+                            .init(color: .black, location: 0.88), .init(color: .clear, location: 1)],
                     startPoint: .top, endPoint: .bottom
                 )
             )
