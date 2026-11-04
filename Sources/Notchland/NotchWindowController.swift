@@ -254,6 +254,7 @@ final class NotchWindowController {
         pendingExpand = nil
         if let tab { state.select(tab) }
         state.showsShortcuts = showingShortcuts
+        state.showsClothesline = tab == .clipboard
         state.isKeyboardActive = true
         setExpanded(true)
         panel.makeKeyAndOrderFront(nil)
@@ -474,6 +475,7 @@ final class NotchWindowController {
             state.isEditingText = false
             state.isKeyboardActive = false
             state.showsShortcuts = false
+            state.showsClothesline = false
             NotchPanel.releaseKeyFocus()
         }
         // Açılış hafif sekerek, kapanış sekmeden ve biraz daha çabuk.
@@ -530,6 +532,8 @@ final class NotchState {
     @ObservationIgnored var onClose: (() -> Void)?
     /// Kısayol tablosu gösteriliyor (sekme değiştirilince kapanır).
     var showsShortcuts = false
+    /// Pano kısayolla açıldı: liste yerine çamaşır ipi.
+    var showsClothesline = false
     /// Fare kapalı notch'un üzerinde (açılma gecikmesi sırasında hafif büyüme).
     var isHovering = false
     var closedSize = CGSize(width: 200, height: 32)

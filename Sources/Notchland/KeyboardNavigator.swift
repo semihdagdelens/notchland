@@ -109,6 +109,9 @@ final class KeyboardNavigator {
             let kind: NotchState.KeyCommand.Kind? = switch key {
             case kVK_UpArrow: .up
             case kVK_DownArrow: .down
+            // İpte kartlar yan yana asılıdır; ← → sekme değil kart değiştirir.
+            case kVK_LeftArrow where isClipboard && state.showsClothesline: .up
+            case kVK_RightArrow where isClipboard && state.showsClothesline: .down
             case kVK_Return, kVK_ANSI_KeypadEnter: .enter
             case kVK_Delete, kVK_ForwardDelete where isClipboard: .delete
             case kVK_ANSI_C where command && isClipboard: .copy

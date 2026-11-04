@@ -49,6 +49,9 @@ struct ClipboardView: View {
 
     var body: some View {
         VStack(spacing: 6) {
+            if state.showsClothesline {
+                ClothesLineView(state: state, clipboard: clipboard, items: visibleItems, selectedID: selectedItem?.id)
+            } else {
             header
             if visibleItems.isEmpty {
                 VStack(spacing: 6) {
@@ -64,7 +67,7 @@ struct ClipboardView: View {
                         LazyVStack(spacing: 5) {
                             ForEach(visibleItems) { item in
                                 ClipboardRow(
-                                    item: item, clipboard: clipboard,
+                                    state: state, item: item, clipboard: clipboard,
                                     isSelected: state.isKeyboardActive && item.id == selectedItem?.id
                                 )
                                 .id(item.id)
@@ -76,6 +79,7 @@ struct ClipboardView: View {
                         withAnimation(.easeOut(duration: 0.15)) { proxy.scrollTo(id) }
                     }
                 }
+            }
             }
         }
         .onChange(of: state.keyCommand) { _, command in
@@ -133,6 +137,16 @@ struct ClipboardView: View {
                 }
             }
             Button {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { state.showsClothesline = true }
+            } label: {
+                Image(systemName: "tshirt")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 22, height: 20)
+            }
+            .buttonStyle(.plain)
+            .help("Çamaşır ipi görünümü")
+            Button {
                 clipboard.removeAll()
             } label: {
                 Image(systemName: "trash")
@@ -147,6 +161,7 @@ struct ClipboardView: View {
 }
 
 private struct ClipboardRow: View {
+    let state: NotchState
     let item: ClipboardStore.Item
     let clipboard: ClipboardStore
     var isSelected = false
@@ -162,12 +177,12 @@ private struct ClipboardRow: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(title)
+                Text(item.title)
                     .font(.system(size: 12, weight: .semibold))
                     .lineLimit(1)
                     .truncationMode(.middle)
                 HStack(spacing: 4) {
-                    Text(kindLabel)
+                    Text(item.kindLabel)
                         .foregroundStyle(tint)
                     Text("·")
                     Text(item.date, format: .relative(presentation: .named, unitsStyle: .abbreviated))
@@ -221,19 +236,9 @@ private struct ClipboardRow: View {
         .onHover { hovering in
             withAnimation(.easeOut(duration: 0.12)) { isHovering = hovering }
         }
-        .onTapGesture { clipboard.copy(item, paste: true) }
-        .onDrag { dragProvider }
-        .contextMenu {
-            Button("Yapıştır") { clipboard.copy(item, paste: true) }
-            Button("Sadece Kopyala") { clipboard.copy(item, paste: false) }
-            if originalFileURL != nil {
-                Button("Finder'da Göster") {
-                    if let url = originalFileURL { NSWorkspace.shared.activateFileViewerSelecting([url]) }
-                }
-            }
-            Divider()
-            Button("Sil") { clipboard.remove(item) }
-        }
+        .onTapGesture { state.paste(item, using: clipboard) }
+        .onDrag { item.dragProvider(using: clipboard) }
+        .contextMenu { ClipboardItemMenu(state: state, clipboard: clipboard, item: item) }
         .help("Tıkla: yapıştır · Sürükle: başka yere bırak · Sağ tık: diğer seçenekler")
     }
 
@@ -269,34 +274,63 @@ private struct ClipboardRow: View {
         }
     }
 
-    private var title: String {
-        switch item.kind {
+    private var tint: Color { item.tint }
+}
+
+/// Satırların ve ipteki kartların ortak sağ tık menüsü.
+struct ClipboardItemMenu: View {
+    let state: NotchState
+    let clipboard: ClipboardStore
+    let item: ClipboardStore.Item
+
+    var body: some View {
+        Button("Yapıştır") { state.paste(item, using: clipboard) }
+        Button("Sadece Kopyala") { clipboard.copy(item, paste: false) }
+        if let url = item.originalFileURL {
+            Button("Finder'da Göster") { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+        }
+        Divider()
+        Button("Sil") { clipboard.remove(item) }
+    }
+}
+
+extension NotchState {
+    /// Klavyeyle açıkken panel odaktadır; ⌘V öndeki uygulamaya gitsin diye önce notch kapanır.
+    func paste(_ item: ClipboardStore.Item, using clipboard: ClipboardStore) {
+        if isKeyboardActive { onClose?() }
+        clipboard.copy(item, paste: true)
+    }
+}
+
+extension ClipboardStore.Item {
+    var title: String {
+        switch kind {
         case .text:
-            let firstLine = (item.text ?? "").split(whereSeparator: \.isNewline).first.map(String.init) ?? ""
+            let firstLine = (text ?? "").split(whereSeparator: \.isNewline).first.map(String.init) ?? ""
             return firstLine.trimmingCharacters(in: .whitespaces)
         case .link:
-            return item.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            return text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         case .image:
-            let base = item.isScreenshot == true ? "Ekran görüntüsü" : "Görsel"
-            if let w = item.pixelWidth, let h = item.pixelHeight { return "\(base) \(w)×\(h)" }
+            let base = isScreenshot == true ? "Ekran görüntüsü" : "Görsel"
+            if let w = pixelWidth, let h = pixelHeight { return "\(base) \(w)×\(h)" }
             return base
         case .files:
-            let paths = item.filePaths ?? []
+            let paths = filePaths ?? []
             return paths.count == 1 ? (paths[0] as NSString).lastPathComponent : "\(paths.count) dosya"
         }
     }
 
-    private var kindLabel: String {
-        switch item.kind {
+    var kindLabel: String {
+        switch kind {
         case .text: "Metin"
         case .link: "Bağlantı"
-        case .image: item.isScreenshot == true ? "Ekran görüntüsü" : "Görsel"
+        case .image: isScreenshot == true ? "Ekran görüntüsü" : "Görsel"
         case .files: "Dosya"
         }
     }
 
-    private var tint: Color {
-        switch item.kind {
+    var tint: Color {
+        switch kind {
         case .text: Color(red: 0.25, green: 0.45, blue: 0.95)
         case .link: Color(red: 0.15, green: 0.65, blue: 0.75)
         case .image: Color(red: 0.62, green: 0.3, blue: 0.9)
@@ -305,21 +339,21 @@ private struct ClipboardRow: View {
     }
 
     /// Ekran görüntüsü veya tek dosyanın diskteki asıl konumu.
-    private var originalFileURL: URL? {
-        guard item.kind == .files || item.isScreenshot == true,
-              let path = item.filePaths?.first, FileManager.default.fileExists(atPath: path) else { return nil }
+    var originalFileURL: URL? {
+        guard kind == .files || isScreenshot == true,
+              let path = filePaths?.first, FileManager.default.fileExists(atPath: path) else { return nil }
         return URL(fileURLWithPath: path)
     }
 
-    private var dragProvider: NSItemProvider {
-        switch item.kind {
+    func dragProvider(using clipboard: ClipboardStore) -> NSItemProvider {
+        switch kind {
         case .text, .link:
-            return NSItemProvider(object: (item.text ?? "") as NSString)
+            return NSItemProvider(object: (text ?? "") as NSString)
         case .image:
-            if let image = clipboard.image(for: item) { return NSItemProvider(object: image) }
+            if let image = clipboard.image(for: self) { return NSItemProvider(object: image) }
             return NSItemProvider()
         case .files:
-            return item.filePaths?.first.flatMap { NSItemProvider(contentsOf: URL(fileURLWithPath: $0)) } ?? NSItemProvider()
+            return filePaths?.first.flatMap { NSItemProvider(contentsOf: URL(fileURLWithPath: $0)) } ?? NSItemProvider()
         }
     }
 }

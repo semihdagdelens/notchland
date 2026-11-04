@@ -49,6 +49,13 @@ final class ClipboardStore {
     /// Satırlarda 34 pt'lik önizleme gösterilir; tam boy görseller bellekte tutulmaz.
     @ObservationIgnored private var thumbnailCache: [UUID: NSImage] = [:]
     private static let thumbnailPixels = 96
+    /// İpteki kartların önizlemesi; satırlardakinden büyük, sayısı sınırlı tutulur.
+    @ObservationIgnored private let previewCache: NSCache<NSUUID, NSImage> = {
+        let cache = NSCache<NSUUID, NSImage>()
+        cache.countLimit = 40
+        return cache
+    }()
+    private static let previewPixels = 360
 
     @ObservationIgnored private let directory: URL = {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -269,20 +276,38 @@ final class ClipboardStore {
     func thumbnail(for item: Item) -> NSImage? {
         if let cached = thumbnailCache[item.id] { return cached }
         guard let file = item.imageFile,
-              let source = CGImageSourceCreateWithURL(directory.appendingPathComponent(file) as CFURL, nil),
-              let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, [
-                  kCGImageSourceCreateThumbnailFromImageAlways: true,
-                  kCGImageSourceCreateThumbnailWithTransform: true,
-                  kCGImageSourceThumbnailMaxPixelSize: Self.thumbnailPixels,
-              ] as CFDictionary)
+              let image = Self.downsampledImage(at: directory.appendingPathComponent(file), maxPixels: Self.thumbnailPixels)
         else { return nil }
-        let image = NSImage(cgImage: cgImage, size: .zero)
         thumbnailCache[item.id] = image
         return image
     }
 
+    /// Kart önizlemesi: büyük ekran görüntülerini çözmek kaydırmayı takıltmasın diye arka planda okunur.
+    func preview(for item: Item) async -> NSImage? {
+        if let cached = previewCache.object(forKey: item.id as NSUUID) { return cached }
+        guard let file = item.imageFile else { return nil }
+        let url = directory.appendingPathComponent(file)
+        let image = await Task.detached(priority: .userInitiated) {
+            Self.downsampledImage(at: url, maxPixels: Self.previewPixels)
+        }.value
+        if let image { previewCache.setObject(image, forKey: item.id as NSUUID) }
+        return image
+    }
+
+    private static func downsampledImage(at url: URL, maxPixels: Int) -> NSImage? {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+              let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, [
+                  kCGImageSourceCreateThumbnailFromImageAlways: true,
+                  kCGImageSourceCreateThumbnailWithTransform: true,
+                  kCGImageSourceThumbnailMaxPixelSize: maxPixels,
+              ] as CFDictionary)
+        else { return nil }
+        return NSImage(cgImage: cgImage, size: .zero)
+    }
+
     private func deleteFiles(of item: Item) {
         thumbnailCache[item.id] = nil
+        previewCache.removeObject(forKey: item.id as NSUUID)
         if let file = item.imageFile {
             try? FileManager.default.removeItem(at: directory.appendingPathComponent(file))
         }

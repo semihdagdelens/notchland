@@ -11,7 +11,7 @@ enum AppShortcut: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .home: "Ana sayfa"
-        case .clipboard: "Pano"
+        case .clipboard: "Pano (çamaşır ipi)"
         case .shelf: "Dosya rafı"
         case .calendar: "Takvim"
         case .notes: "Notlar"
