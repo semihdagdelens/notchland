@@ -49,6 +49,6 @@
     <key>NSDocumentsFolderUsageDescription</key>
     <string>Notchland, ekran görüntüleriniz Belgeler'e kaydediliyorsa onları pano geçmişine eklemek için bu klasöre erişir.</string>
     <key>NSDownloadsFolderUsageDescription</key>
-    <string>Notchland, ekran görüntüleriniz İndirilenler'e kaydediliyorsa onları pano geçmişine eklemek ve indirdiğiniz videoları kaydetmek için bu klasöre erişir.</string>
+    <string>Notchland, ekran görüntüleriniz İndirilenler'e kaydediliyorsa onları pano geçmişine eklemek, son indirilenleri notch'ta göstermek ve indirdiğiniz videoları kaydetmek için bu klasöre erişir.</string>
 </dict>
 </plist>

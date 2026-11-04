@@ -8,6 +8,7 @@ struct NotchView: View {
     let calendar: CalendarService
     let weather: WeatherService
     let clipboard: ClipboardStore
+    let downloads: DownloadsStore
     let lyrics: LyricsService
     let stats: SystemStats
     let dictation: DictationService
@@ -118,6 +119,8 @@ struct NotchView: View {
                                 CalculatorView()
                             case .wrapped:
                                 WrappedView(history: media.history)
+                            case .downloads:
+                                DownloadsView(state: state, downloads: downloads, shelf: shelf)
                             case .shelf:
                                 ShelfView(state: state, shelf: shelf, isDropTargeted: isDropTargeted)
                             }
@@ -185,7 +188,7 @@ private struct TabBar: View {
     var body: some View {
         HStack(spacing: 0) {
             // Tüm sekmeler açıkken düğmeler notch'un sol kulağına sığsın; taşarsa notch'un altına kayıyorlar.
-            HStack(spacing: state.enabledTabs.count > 7 ? 7 : 10) {
+            HStack(spacing: state.enabledTabs.count > 8 ? 3 : state.enabledTabs.count > 7 ? 7 : 10) {
                 ForEach(state.enabledTabs, id: \.self) { tab in
                     TabButton(symbol: tab.symbol, isSelected: state.tab == tab) { state.select(tab) }
                 }

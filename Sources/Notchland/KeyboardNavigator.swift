@@ -103,6 +103,19 @@ final class KeyboardNavigator {
                 AppSettings.shared.translateLyrics.toggle()
                 return true
             }
+        // Dosyalar yan yana dizilidir; ← → sekme değil dosya değiştirir (Tab sekme değiştirir).
+        case .downloads:
+            let kind: NotchState.KeyCommand.Kind? = switch key {
+            case kVK_LeftArrow: .up
+            case kVK_RightArrow: .down
+            case kVK_Return, kVK_ANSI_KeypadEnter: .enter
+            case kVK_ANSI_C where command: .copy
+            default: nil
+            }
+            if let kind {
+                state.keyCommand = NotchState.KeyCommand(kind: kind)
+                return true
+            }
         case .shelf:
             if command && key == kVK_ANSI_C {
                 state.keyCommand = NotchState.KeyCommand(kind: .copy)

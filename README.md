@@ -28,6 +28,7 @@ SwiftUI + AppKit ile yazılmıştır, macOS 14 veya üstü gerekir.
 - **Hesap makinesi** — geçmişli, klavyeyle de kullanılabilir
 - **Wrapped** — bugün, bu hafta, bu ay ve tüm zamanlarda ne kadar müzik dinlediğin; en çok dinlenen şarkılar ve sanatçılar, seri ve en çok dinlenen saat (yalnızca bu Mac'te tutulur)
 - **Raf** — çentiğe sürüklenen dosyalar için geçici raf; hepsini tek hareketle başka yere sürükleme veya kopyalama; AirDrop'a bırakma alanı
+- **İndirilenler** — son indirilen dosyalar önizlemeleriyle; tıkla aç, sürükle, rafa ekle
 
 **Diğer**
 - Kısayolla açılan Türkçe dikte (cihaz üzerinde tanıma); bitince metni öndeki uygulamaya yapıştırır

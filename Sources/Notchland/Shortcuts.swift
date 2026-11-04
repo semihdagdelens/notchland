@@ -2,9 +2,9 @@ import Carbon.HIToolbox
 import SwiftUI
 
 /// Sekmeleri ve araçları doğrudan açan genel kısayollar. Hepsi ⌃⌥ + Türkçe adının bir harfi:
-/// Ana sayfa, Pano, Raf, Takvim, nOtlar, Hesap makinesi, Wrapped, İstatistik, Format, Kısayollar.
+/// Ana sayfa, Pano, Raf, indiriLenler, Takvim, nOtlar, Hesap makinesi, Wrapped, İstatistik, Format, Kısayollar.
 enum AppShortcut: String, CaseIterable, Identifiable {
-    case home, clipboard, shelf, calendar, notes, calculator, wrapped, stats, formatWheel, shortcuts
+    case home, clipboard, shelf, downloads, calendar, notes, calculator, wrapped, stats, formatWheel, shortcuts
 
     var id: String { rawValue }
 
@@ -13,6 +13,7 @@ enum AppShortcut: String, CaseIterable, Identifiable {
         case .home: "Ana sayfa"
         case .clipboard: "Pano (çamaşır ipi)"
         case .shelf: "Dosya rafı"
+        case .downloads: "İndirilenler"
         case .calendar: "Takvim"
         case .notes: "Notlar"
         case .calculator: "Hesap makinesi"
@@ -37,6 +38,7 @@ enum AppShortcut: String, CaseIterable, Identifiable {
         case .home: .home
         case .clipboard: .clipboard
         case .shelf: .shelf
+        case .downloads: .downloads
         case .calendar: .calendar
         case .notes: .notes
         case .calculator: .calculator
@@ -51,6 +53,7 @@ enum AppShortcut: String, CaseIterable, Identifiable {
         case .home: (kVK_ANSI_A, "A")
         case .clipboard: (kVK_ANSI_P, "P")
         case .shelf: (kVK_ANSI_R, "R")
+        case .downloads: (kVK_ANSI_L, "L")
         case .calendar: (kVK_ANSI_T, "T")
         case .notes: (kVK_ANSI_O, "O")
         case .calculator: (kVK_ANSI_H, "H")
@@ -101,7 +104,7 @@ struct ShortcutsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             Text("Kısayollar").font(.system(size: 13, weight: .bold))
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 14), count: 3), spacing: 3) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 14), count: 3), spacing: 2) {
                 ForEach(rows) { row in
                     HStack(spacing: 6) {
                         Image(systemName: row.symbol)
@@ -115,7 +118,7 @@ struct ShortcutsView: View {
                         Spacer(minLength: 2)
                         KeyCap(text: row.keys)
                     }
-                    .frame(height: 18)
+                    .frame(height: 16)
                 }
             }
             Spacer(minLength: 0)

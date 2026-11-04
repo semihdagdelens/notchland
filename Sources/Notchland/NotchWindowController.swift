@@ -53,6 +53,7 @@ final class NotchWindowController {
     private let state = NotchState()
     private let media = MediaController()
     private let shelf = ShelfStore()
+    private let downloads = DownloadsStore()
     private let battery = BatteryMonitor()
     private let volume = VolumeController()
     private let brightness = BrightnessController()
@@ -84,7 +85,7 @@ final class NotchWindowController {
         let panel = NotchPanel(contentRect: .zero)
         let root = NotchView(
             state: state, media: media, shelf: shelf, battery: battery, calendar: calendar, weather: weather,
-            clipboard: clipboard, lyrics: lyrics, stats: stats,
+            clipboard: clipboard, downloads: downloads, lyrics: lyrics, stats: stats,
             dictation: dictation, headphones: headphones,
             reminders: reminders, notes: notes,
             onDictationToggle: { [weak self] in self?.toggleDictation() }
@@ -522,6 +523,7 @@ final class NotchState {
         case home
         case clipboard
         case shelf
+        case downloads
         case calendar
         case notes
         case calculator
@@ -533,6 +535,7 @@ final class NotchState {
             case .home: "house.fill"
             case .clipboard: "doc.on.clipboard.fill"
             case .shelf: "tray.fill"
+            case .downloads: "arrow.down.circle.fill"
             case .calendar: "calendar"
             case .notes: "checklist"
             case .calculator: "plus.forwardslash.minus"
@@ -585,6 +588,7 @@ final class NotchState {
         case .calculator: return settings.showCalculatorTab
         case .wrapped: return settings.showWrappedTab
         case .shelf: return settings.showShelfTab
+        case .downloads: return settings.showDownloadsTab
         }
     }
 

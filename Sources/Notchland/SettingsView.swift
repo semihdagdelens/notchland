@@ -96,6 +96,7 @@ private struct GeneralSettings: View {
                 Toggle("Hesap makinesi", isOn: $settings.showCalculatorTab)
                 Toggle("Dinleme özeti (Wrapped)", isOn: $settings.showWrappedTab)
                 Toggle("Dosya rafı", isOn: $settings.showShelfTab)
+                Toggle("Son indirilenler", isOn: $settings.showDownloadsTab)
             }
         }
         .formStyle(.grouped)
