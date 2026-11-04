@@ -73,6 +73,14 @@ private struct GeneralSettings: View {
                             .frame(width: 60, alignment: .trailing)
                     }
                 }
+                PanelSizeSlider(title: "Panel genişliği", value: $settings.panelWidth, range: AppSettings.panelWidthRange)
+                PanelSizeSlider(title: "Panel yüksekliği", value: $settings.panelHeight, range: AppSettings.panelHeightRange)
+                if settings.panelWidth != AppSettings.panelWidthRange.lowerBound || settings.panelHeight != AppSettings.panelHeightRange.lowerBound {
+                    Button("Varsayılan boyuta dön") {
+                        settings.panelWidth = AppSettings.panelWidthRange.lowerBound
+                        settings.panelHeight = AppSettings.panelHeightRange.lowerBound
+                    }
+                }
                 Toggle("Açılırken titreşim (trackpad)", isOn: $settings.hapticFeedback)
                 Toggle("Koci (notch'ta yaşayan piksel kedi)", isOn: $settings.showKoci)
             }
@@ -100,6 +108,24 @@ private struct GeneralSettings: View {
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+private struct PanelSizeSlider: View {
+    let title: String
+    @Binding var value: Double
+    let range: ClosedRange<Double>
+
+    var body: some View {
+        LabeledContent(title) {
+            HStack {
+                Slider(value: $value, in: range, step: 10)
+                    .frame(width: 180)
+                Text("\(Int(value)) pt")
+                    .monospacedDigit()
+                    .frame(width: 60, alignment: .trailing)
+            }
+        }
     }
 }
 

@@ -61,7 +61,7 @@ final class ClipboardStore {
         cache.countLimit = 40
         return cache
     }()
-    private static let previewPixels = 360
+    private static let previewPixels = 640
 
     @ObservationIgnored private let directory: URL = {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]

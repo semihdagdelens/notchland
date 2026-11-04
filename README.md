@@ -39,7 +39,7 @@ SwiftUI + AppKit ile yazılmıştır, macOS 14 veya üstü gerekir.
 - Video bağlantısı indirme: YouTube vb. bir link kopyalanıp ⌃⌥F'ye basılınca çark MP4 / MP3 sunar, dosya İndirilenler'e iner (`brew install yt-dlp`)
 - Oturum açılınca başlatma
 
-Hepsi menü çubuğundaki simgeden açılan **Ayarlar** penceresinden açılıp kapatılabilir.
+Panelin genişliği ve yüksekliği de Ayarlar'dan büyütülebilir. Hepsi menü çubuğundaki simgeden açılan **Ayarlar** penceresinden açılıp kapatılabilir.
 
 ## Kurulum
 

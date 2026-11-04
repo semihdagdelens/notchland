@@ -76,10 +76,11 @@ final class DownloadsStore {
     }
 
     /// Görsel, video ve PDF için içerik önizlemesi; yoksa dosya ikonu.
-    func thumbnail(for item: Item, side: CGFloat) async -> NSImage? {
+    func thumbnail(for item: Item) async -> NSImage? {
         if let cached = thumbnails.object(forKey: item.url as NSURL) { return cached }
+        // Tek boyutta üretilir: en büyük panelin kutucuğuna göre, panel büyüyünce bulanmasın.
         let request = QLThumbnailGenerator.Request(
-            fileAt: item.url, size: CGSize(width: side, height: side), scale: 2, representationTypes: .all
+            fileAt: item.url, size: CGSize(width: 280, height: 280), scale: 2, representationTypes: .all
         )
         guard let image = try? await QLThumbnailGenerator.shared.generateBestRepresentation(for: request).nsImage else { return nil }
         thumbnails.setObject(image, forKey: item.url as NSURL)

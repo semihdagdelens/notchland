@@ -77,6 +77,11 @@ final class AppSettings {
     var navigationHotKey = NavigationHotKey(rawValue: AppSettings.value("navigationHotKey", "controlOptionN")) ?? .controlOptionN {
         didSet { save("navigationHotKey", navigationHotKey.rawValue) }
     }
+    /// Açık panelin boyutu. Arayüz en küçük boyuta göre tasarlandı; bu yüzden aşağı inilmez.
+    static let panelWidthRange = 600.0...900.0
+    static let panelHeightRange = 190.0...380.0
+    var panelWidth = AppSettings.value("panelWidth", AppSettings.panelWidthRange.lowerBound) { didSet { save("panelWidth", panelWidth) } }
+    var panelHeight = AppSettings.value("panelHeight", AppSettings.panelHeightRange.lowerBound) { didSet { save("panelHeight", panelHeight) } }
     /// Ayarlardan kapatılan genel kısayollar (`AppShortcut.rawValue`).
     var disabledShortcuts = AppSettings.value("disabledShortcuts", [String]()) {
         didSet { save("disabledShortcuts", disabledShortcuts) }

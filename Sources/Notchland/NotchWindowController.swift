@@ -42,8 +42,11 @@ final class NotchPanel: NSPanel {
 }
 
 final class NotchWindowController {
-    static let expandedSize = CGSize(width: 600, height: 190)
-    /// Dikte paneli; panel çerçevesi `expandedSize`'a göre olduğundan ondan büyük olmamalı.
+    /// Görünümler bunu gövdelerinde okuduğu için ayar değişince kendiliğinden yeniden çizilir.
+    static var expandedSize: CGSize {
+        CGSize(width: AppSettings.shared.panelWidth, height: AppSettings.shared.panelHeight)
+    }
+    /// Dikte paneli; panel çerçevesi `expandedSize`'a göre olduğundan en küçük panelden büyük olmamalı.
     static let dictationSize = CGSize(width: 520, height: 120)
     /// Dışa kıvrılan üst köşeler ve gölge için panelin notch'tan taşan payı.
     private static let panelMargin: CGFloat = 32
@@ -77,6 +80,9 @@ final class NotchWindowController {
     private let settings = AppSettings.shared
     /// Açılma gecikmesi ayarı için bekleyen açılış.
     private var pendingExpand: DispatchWorkItem?
+    /// Ayarlarda boyut değişirken panel önizleme için açık tutulur.
+    private var sizePreviewEnd: DispatchWorkItem?
+    private var lastPanelSize = NotchWindowController.expandedSize
 
     /// Fare basıldığında sürükleme panosunun sayacı; değişirse içerik sürükleniyor demektir.
     private var dragChangeCountAtMouseDown = NSPasteboard(name: .drag).changeCount
@@ -124,6 +130,36 @@ final class NotchWindowController {
             self.state.present(.notification(notice))
         }
         notificationMirror.start()
+        observePanelSize()
+    }
+
+    // MARK: - Panel boyutu
+
+    private func observePanelSize() {
+        let size = withObservationTracking {
+            Self.expandedSize
+        } onChange: { [weak self] in
+            DispatchQueue.main.async { self?.observePanelSize() }
+        }
+        guard size != lastPanelSize else { return }
+        lastPanelSize = size
+        reposition()
+        previewPanelSize()
+    }
+
+    /// Kaydırıcı oynarken panel açılır ki boyut görülsün; bırakılınca kısa süre sonra kapanır.
+    private func previewPanelSize() {
+        guard let panel, !state.isKeyboardActive, !dictation.isActive else { return }
+        sizePreviewEnd?.cancel()
+        setExpanded(true)
+        // Panel Ayarlar penceresinin üstüne binebilir; tıklamalar yine kaydırıcıya gitsin.
+        panel.ignoresMouseEvents = true
+        let end = DispatchWorkItem { [weak self] in
+            self?.sizePreviewEnd = nil
+            self?.setExpanded(false)
+        }
+        sizePreviewEnd = end
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: end)
     }
 
     // MARK: - Dikte
@@ -419,6 +455,8 @@ final class NotchWindowController {
         if state.isDraggingFromShelf { return }
         // Dikte paneli fareden bağımsız; kısayol veya düğmeyle kapanır.
         if dictation.isActive { return }
+        // Boyut önizlemesi fareden bağımsız; imleç Ayarlar penceresindedir.
+        if sizePreviewEnd != nil { return }
         // Çark açıkken imleç çentiğin üzerinden geçse de notch açılmasın.
         if formatWheel.isVisible { return }
         // Not yazılırken fare dışarı kaysa da açık kalır; dışarı tıklanınca kapanır.

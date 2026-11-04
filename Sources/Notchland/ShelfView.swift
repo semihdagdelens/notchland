@@ -100,17 +100,20 @@ private struct ShelfItemView: View {
 
     @State private var isHovering = false
 
+    /// En küçük panelde 44; panel uzadıkça ikon da büyür.
+    private var iconSide: CGFloat { 44 + (NotchWindowController.expandedSize.height - 190) * 0.5 }
+
     var body: some View {
         VStack(spacing: 4) {
             Image(nsImage: item.icon)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 44, height: 44)
+                .frame(width: iconSide, height: iconSide)
             Text(item.name)
                 .font(.caption2)
                 .lineLimit(1)
                 .truncationMode(.middle)
-                .frame(width: 72)
+                .frame(width: iconSide + 28)
         }
         .padding(6)
         .background(

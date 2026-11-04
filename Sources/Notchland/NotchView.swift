@@ -300,8 +300,10 @@ private struct NowPlayingView: View {
 
     var body: some View {
         HStack(spacing: 14) {
+            // Sözler açıkken yan sütun dardır; kapak yalnızca tek başınayken panelle büyür.
+            let artwork = state.showLyrics ? 72 : max(72, NotchWindowController.expandedSize.height - 118)
             ArtworkView(track: track)
-                .frame(width: 72, height: 72)
+                .frame(width: artwork, height: artwork)
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
@@ -359,7 +361,8 @@ private struct ArtworkView: View {
         ZStack(alignment: .bottomTrailing) {
             Group {
                 if let artwork = track.artwork {
-                    Image(nsImage: artwork).resizable().scaledToFill()
+                    // Kare olmayan kapak (YouTube) kutuyu genişletip yazının üstüne binmesin.
+                    Color.clear.overlay { Image(nsImage: artwork).resizable().scaledToFill() }.clipped()
                 } else {
                     Image(systemName: "music.note")
                         .font(.title)

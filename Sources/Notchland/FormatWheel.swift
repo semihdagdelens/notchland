@@ -2,7 +2,7 @@ import AppKit
 import Carbon.HIToolbox
 import SwiftUI
 
-/// Çark, çentiğin 600×190'lık paneline sığmadığı için imlecin çevresinde açılan kendi panelinde durur.
+/// Çark, çentiğin paneline sığmadığı için imlecin çevresinde açılan kendi panelinde durur.
 private final class FormatWheelPanel: NSPanel {
     init(side: CGFloat) {
         super.init(

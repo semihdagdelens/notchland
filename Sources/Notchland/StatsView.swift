@@ -102,7 +102,7 @@ private struct StatTile: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
             Sparkline(values: history, maxValue: maxValue)
-                .frame(height: 30)
+                .frame(minHeight: 30, maxHeight: .infinity)
             Text(alert ?? detail)
                 .font(.system(size: 9))
                 .foregroundStyle(.secondary)

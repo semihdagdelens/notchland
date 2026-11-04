@@ -25,12 +25,15 @@ struct DownloadsView: View {
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
+                GeometryReader { area in
                 ScrollViewReader { proxy in
                     ScrollView(.horizontal, showsIndicators: false) {
                         LazyHStack(alignment: .top, spacing: 6) {
                             ForEach(downloads.items) { item in
                                 DownloadTile(
                                     state: state, downloads: downloads, shelf: shelf, item: item,
+                                    // Ad ve tarih satırlarına kalan yükseklik kadar.
+                                    side: max(58, area.size.height - 38),
                                     isSelected: state.isKeyboardActive && item.id == selectedItem?.id
                                 )
                                 .id(item.id)
@@ -41,6 +44,7 @@ struct DownloadsView: View {
                         guard let id else { return }
                         withAnimation(.easeOut(duration: 0.15)) { proxy.scrollTo(id, anchor: .center) }
                     }
+                }
                 }
             }
         }
@@ -90,9 +94,8 @@ private struct DownloadTile: View {
     let downloads: DownloadsStore
     let shelf: ShelfStore
     let item: DownloadsStore.Item
+    let side: CGFloat
     let isSelected: Bool
-
-    private static let side: CGFloat = 58
 
     @State private var isHovering = false
     @State private var thumbnail: NSImage?
@@ -106,7 +109,7 @@ private struct DownloadTile: View {
                     Image(nsImage: FileIcon.icon(forFile: item.url.path)).resizable().scaledToFit().padding(6)
                 }
             }
-            .frame(width: Self.side, height: Self.side)
+            .frame(width: side, height: side)
             .clipShape(RoundedRectangle(cornerRadius: 6))
             Text(item.name)
                 .font(.system(size: 10, weight: .medium))
@@ -117,7 +120,7 @@ private struct DownloadTile: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         }
-        .frame(width: 84)
+        .frame(width: side + 26)
         .padding(.vertical, 3)
         .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(isHovering || isSelected ? 0.12 : 0)))
         .overlay {
@@ -146,7 +149,7 @@ private struct DownloadTile: View {
         }
         .help(item.name)
         .task(id: item.url) {
-            thumbnail = await downloads.thumbnail(for: item, side: Self.side)
+            thumbnail = await downloads.thumbnail(for: item)
         }
     }
 }

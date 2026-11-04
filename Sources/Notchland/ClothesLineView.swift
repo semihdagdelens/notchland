@@ -9,26 +9,30 @@ struct ClothesLineView: View {
     let selectedID: ClipboardStore.Item.ID?
 
     /// Bir kartın ipte kapladığı genişlik; ip parçaları bu aralıkla birbirine eklenir.
-    fileprivate static let pitch: CGFloat = 116
+    /// En küçük panelde 116; panel uzadıkça kart oranı bozulmasın diye genişlik de büyür.
+    private static func pitch(forHeight height: CGFloat) -> CGFloat {
+        max(116, height * 0.92)
+    }
 
     var body: some View {
         HStack(spacing: 0) {
             GeometryReader { proxy in
+                let pitch = Self.pitch(forHeight: proxy.size.height)
                 ScrollViewReader { scroller in
                     ScrollView(.horizontal, showsIndicators: false) {
                         LazyHStack(alignment: .top, spacing: 0) {
                             ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                                 HangingCard(
-                                    state: state, clipboard: clipboard, item: item, order: index,
+                                    state: state, clipboard: clipboard, item: item, order: index, width: pitch - 16,
                                     isSelected: state.isKeyboardActive && item.id == selectedID
                                 )
-                                .frame(width: Self.pitch, height: proxy.size.height, alignment: .top)
+                                .frame(width: pitch, height: proxy.size.height, alignment: .top)
                                 .background(alignment: .top) { Rope() }
                                 .id(item.id)
                             }
                             // İp az öğede de görünümün sonuna kadar uzansın.
-                            ForEach(0..<fillerCount(for: proxy.size.width), id: \.self) { _ in
-                                Rope().frame(width: Self.pitch, height: proxy.size.height, alignment: .top)
+                            ForEach(0..<fillerCount(width: proxy.size.width, pitch: pitch), id: \.self) { _ in
+                                Rope().frame(width: pitch, height: proxy.size.height, alignment: .top)
                             }
                         }
                     }
@@ -49,8 +53,8 @@ struct ClothesLineView: View {
         }
     }
 
-    private func fillerCount(for width: CGFloat) -> Int {
-        max(Int((width / Self.pitch).rounded(.up)) - items.count, 0) + 1
+    private func fillerCount(width: CGFloat, pitch: CGFloat) -> Int {
+        max(Int((width / pitch).rounded(.up)) - items.count, 0) + 1
     }
 
     private var controls: some View {
@@ -89,7 +93,8 @@ private struct Rope: View {
             let baseline = Self.pinY - 2.5
             var path = Path()
             path.move(to: CGPoint(x: 0, y: baseline - 2.5))
-            for x in stride(from: CGFloat(0), through: size.width, by: 4) {
+            // Son nokta tam kenara düşsün: parça genişliği 4'e bölünmese de ip kopuk görünmesin.
+            for x in Array(stride(from: CGFloat(0), to: size.width, by: 4)) + [size.width] {
                 let phase = 2 * CGFloat.pi * (x - size.width / 2) / size.width
                 path.addLine(to: CGPoint(x: x, y: baseline + 2.5 * cos(phase)))
             }
@@ -105,6 +110,7 @@ private struct HangingCard: View {
     let clipboard: ClipboardStore
     let item: ClipboardStore.Item
     let order: Int
+    let width: CGFloat
     let isSelected: Bool
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -117,20 +123,22 @@ private struct HangingCard: View {
     private var seed: Double { Double(item.id.uuid.0) / 255 }
     private var tilt: Double { (seed - 0.5) * 6 }
     private var isFocused: Bool { isHovering || isSelected }
+    /// Büyük kartta yazılar da büyür; en küçük panelde 1.
+    private var textScale: CGFloat { width / 100 }
 
     var body: some View {
         ZStack(alignment: .top) {
             card.padding(.top, Rope.pinY + 8).padding(.bottom, 6)
             Clothespin().padding(.top, Rope.pinY - 5)
         }
-        .frame(width: ClothesLineView.pitch - 16)
+        .frame(width: width)
         .scaleEffect(isFocused ? 1.04 : 1, anchor: .top)
         .rotationEffect(.degrees(isFocused ? 0 : tilt), anchor: .top)
         .animation(.spring(response: 0.34, dampingFraction: 0.5), value: isFocused)
         // Hafif esinti: yalnızca döndürme canlandırılır, kart ip üzerinde sallanır.
         .rotationEffect(.degrees(reduceMotion ? 0 : isSwaying ? 1.4 : -1.4), anchor: .top)
         .animation(.easeInOut(duration: 1.9 + seed).repeatForever(autoreverses: true), value: isSwaying)
-        .offset(y: isHanging ? 0 : -150)
+        .offset(y: isHanging ? 0 : -400)
         .opacity(isHanging ? 1 : 0)
         .zIndex(isFocused ? 1 : 0)
         .contentShape(Rectangle())
@@ -164,7 +172,7 @@ private struct HangingCard: View {
                 Text(item.date, format: .relative(presentation: .named, unitsStyle: .abbreviated))
                     .lineLimit(1)
             }
-            .font(.system(size: 8, weight: .medium))
+            .font(.system(size: 8 * textScale, weight: .medium))
             .foregroundStyle(.black.opacity(0.5))
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -188,14 +196,14 @@ private struct HangingCard: View {
         case .text:
             // Uzun kopyalar kart başına binlerce satır dizmesin.
             Text(String((item.text ?? "").prefix(220)))
-                .font(.system(size: 9, weight: .regular, design: .serif))
+                .font(.system(size: 9 * textScale, weight: .regular, design: .serif))
                 .foregroundStyle(.black.opacity(0.82))
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         case .link:
             VStack(alignment: .leading, spacing: 3) {
-                Image(systemName: "link").font(.system(size: 13, weight: .bold))
+                Image(systemName: "link").font(.system(size: 13 * textScale, weight: .bold))
                 Text(item.title)
-                    .font(.system(size: 9, weight: .medium))
+                    .font(.system(size: 9 * textScale, weight: .medium))
                     .lineLimit(5)
             }
             .foregroundStyle(Color(red: 0.05, green: 0.38, blue: 0.62))
@@ -203,10 +211,10 @@ private struct HangingCard: View {
         case .files:
             VStack(spacing: 3) {
                 if let first = item.filePaths?.first {
-                    Image(nsImage: FileIcon.icon(forFile: first)).resizable().scaledToFit().frame(width: 40, height: 40)
+                    Image(nsImage: FileIcon.icon(forFile: first)).resizable().scaledToFit().frame(width: 40 * textScale, height: 40 * textScale)
                 }
                 Text(item.title)
-                    .font(.system(size: 9, weight: .medium))
+                    .font(.system(size: 9 * textScale, weight: .medium))
                     .foregroundStyle(.black.opacity(0.8))
                     .lineLimit(2)
                     .truncationMode(.middle)
