@@ -255,23 +255,60 @@ private struct TabBar: View {
 private struct TabStrip: View {
     let state: NotchState
 
-    /// Kulakta tüm sekmeler sığsın diye sıkışır (taşarsa notch'un altına kayarlar); altta yer boldur.
-    private var spacing: CGFloat {
-        if AppSettings.shared.tabBarPlacement == .bottom { return 18 }
-        return state.enabledTabs.count > 8 ? 3 : state.enabledTabs.count > 7 ? 7 : 10
+    var body: some View {
+        /// Dar panelde çok sekme kulağa sığmazsa simgeler küçülür; yoksa sondakiler notch'un altında kalırdı.
+        ViewThatFits(in: .horizontal) {
+            ForEach([13, 12, 11, 10, 9] as [CGFloat], id: \.self) { strip(iconSize: $0) }
+        }
     }
 
-    var body: some View {
-        HStack(spacing: spacing) {
+    private func strip(iconSize: CGFloat) -> some View {
+        let isBottom = AppSettings.shared.tabBarPlacement == .bottom
+        return SpreadStack(minSpacing: 3, maxSpacing: isBottom ? 30 : 24, edgeGap: isBottom ? 0 : 10) {
             ForEach(state.enabledTabs, id: \.self) { tab in
-                TabButton(symbol: tab.symbol, isSelected: state.tab == tab) { state.select(tab) }
+                TabButton(symbol: tab.symbol, iconSize: iconSize, isSelected: state.tab == tab) { state.select(tab) }
             }
+        }
+    }
+}
+
+/// Düğmeleri eldeki genişliğe yayan yatay dizi: panel genişledikçe aralık da açılır.
+/// En küçük aralıkta da sığmazsa taşar (kulakta notch'un altına kayar), eski davranış gibi.
+private struct SpreadStack: Layout {
+    let minSpacing: CGFloat
+    let maxSpacing: CGFloat
+    /// Kulakta son düğme notch'un kenarına yapışmasın diye bırakılan pay.
+    let edgeGap: CGFloat
+
+    private func spacing(_ width: CGFloat?, _ sizes: [CGSize]) -> CGFloat {
+        guard sizes.count > 1, let width, width.isFinite else { return minSpacing }
+        let free = width - edgeGap - sizes.reduce(0) { $0 + $1.width }
+        return min(maxSpacing, max(minSpacing, free / CGFloat(sizes.count - 1)))
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        let gap = spacing(proposal.width, sizes)
+        var width = sizes.reduce(0) { $0 + $1.width } + gap * CGFloat(max(0, sizes.count - 1))
+        /// İdeal boyut sorulduğunda (ViewThatFits) kenar payı da sayılır ki sığma kararı doğru olsun.
+        if proposal.width == nil { width += edgeGap }
+        return CGSize(width: width, height: sizes.map(\.height).max() ?? 0)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        let gap = spacing(proposal.width, sizes)
+        var x = bounds.minX
+        for (subview, size) in zip(subviews, sizes) {
+            subview.place(at: CGPoint(x: x, y: bounds.midY), anchor: .leading, proposal: ProposedViewSize(size))
+            x += size.width + gap
         }
     }
 }
 
 private struct TabButton: View {
     let symbol: String
+    var iconSize: CGFloat = 13
     let isSelected: Bool
     let action: () -> Void
     @State private var hoverSelect: Task<Void, Never>?
@@ -279,7 +316,7 @@ private struct TabButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 13, weight: .semibold))
+                .font(.system(size: iconSize, weight: .semibold))
                 .foregroundStyle(isSelected ? .white : .white.opacity(0.4))
                 .padding(4)
                 .contentShape(Rectangle())
