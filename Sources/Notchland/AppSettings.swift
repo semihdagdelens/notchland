@@ -117,6 +117,11 @@ final class AppSettings {
     var showNotesTab = AppSettings.value("showNotesTab", true) { didSet { save("showNotesTab", showNotesTab) } }
     var showCalculatorTab = AppSettings.value("showCalculatorTab", true) { didSet { save("showCalculatorTab", showCalculatorTab) } }
     var showWrappedTab = AppSettings.value("showWrappedTab", true) { didSet { save("showWrappedTab", showWrappedTab) } }
+    /// Niş olduğu ve sekme çubuğu zaten kalabalık olduğu için isteyene açılır.
+    var showAgentsTab = AppSettings.value("showAgentsTab", false) { didSet { save("showAgentsTab", showAgentsTab) } }
+    var showNotificationsTab = AppSettings.value("showNotificationsTab", true) {
+        didSet { save("showNotificationsTab", showNotificationsTab) }
+    }
 
     // MARK: Göstergeler
 
@@ -131,6 +136,13 @@ final class AppSettings {
     var mirrorNotifications = AppSettings.value("mirrorNotifications", true) {
         didSet { save("mirrorNotifications", mirrorNotifications) }
     }
+    /// Notch'ta gösterilen bildirimin sistem balonu (sağ üst) kapatılsın.
+    var hideSystemBanners = AppSettings.value("hideSystemBanners", true) {
+        didSet { save("hideSystemBanners", hideSystemBanners) }
+    }
+
+    /// Bir AI ajanı işini bitirince veya kullanıcıyı bekleyince notch'ta göster.
+    var agentAlerts = AppSettings.value("agentAlerts", true) { didSet { save("agentAlerts", agentAlerts) } }
 
     // MARK: Takvim ve hava
 

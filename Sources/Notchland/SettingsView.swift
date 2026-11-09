@@ -148,6 +148,8 @@ private struct TabRow: View {
         case .calculator: $settings.showCalculatorTab
         case .wrapped: $settings.showWrappedTab
         case .stats: $settings.showStatsTab
+        case .agents: $settings.showAgentsTab
+        case .notifications: $settings.showNotificationsTab
         }
     }
 
@@ -222,10 +224,22 @@ private struct HUDSettings: View {
 
             Section {
                 Toggle("Bildirimleri notch'ta da göster", isOn: $settings.mirrorNotifications)
+                Toggle("Sistemin bildirim balonunu gizle", isOn: $settings.hideSystemBanners)
+                    .disabled(!settings.mirrorNotifications)
             } header: {
                 Text("Bildirimler")
             } footer: {
-                Text("Ekrana gelen bildirim balonu Erişilebilirlik izniyle okunur ve notch'tan kısa süre gösterilir. Sistemin kendi balonu yine çıkar.")
+                Text("Ekrana gelen bildirim balonu Erişilebilirlik izniyle okunur ve notch'tan kısa süre gösterilir. Balon gizlenirse sağ üstteki sistem balonu hemen kapatılır; bildirim Bildirim Merkezi'nden de kalkar; geçmişi Bildirimler sekmesinde kalır. Yanıt/eylem düğmeli uyarılara dokunulmaz.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            Section {
+                Toggle("Ajan bitirince veya seni bekleyince göster", isOn: $settings.agentAlerts)
+                    .disabled(!settings.showAgentsTab)
+            } header: {
+                Text("AI ajanları")
+            } footer: {
+                Text("Genel ayarlarda “AI ajanları” sekmesi açıkken çalışır. Yalnızca 20 saniyeden uzun süren işlerin bitişi gösterilir. Claude Code konuşmaları okunmaz, yalnızca oturum durumu okunur.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }

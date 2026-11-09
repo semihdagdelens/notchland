@@ -3,7 +3,7 @@ import Carbon.HIToolbox
 import SwiftUI
 
 /// Klavyeyle gezinme: kısayol notch'u açıp paneli klavye odağına alır; tuşlar sekmeleri
-/// ve sekme içi eylemleri sürer. Fare ile açılan notch'ta odak yine öndeki uygulamada kalır.
+/// ve sekme içi eylemleri sürer. Fareyle açılan notch'ta da panel odaktadır; ilk yön tuşu klavye modunu başlatır.
 final class KeyboardNavigator {
     /// Kısayola basıldı (controller notch'u klavye modunda açar ya da kapatır).
     var onToggle: (() -> Void)?
@@ -50,9 +50,15 @@ final class KeyboardNavigator {
 
     /// Tuş işlendiyse (yutulmalıysa) true döner.
     private func handle(_ event: NSEvent) -> Bool {
-        guard state.isKeyboardActive, state.isExpanded, event.window is NotchPanel else { return false }
+        guard state.isExpanded, event.window is NotchPanel else { return false }
         // Bir metin alanında yazarken tuşlar alana gider (Esc alanın kendi işi).
         if state.isEditingText || event.window?.firstResponder is NSText { return false }
+        // Fareyle açıkken gezinme tuşu klavye modunu açar: seçim görünür, fare çıkınca da notch açık kalır.
+        if !state.isKeyboardActive {
+            let starters = [kVK_LeftArrow, kVK_RightArrow, kVK_UpArrow, kVK_DownArrow, kVK_Tab, kVK_Escape]
+            guard starters.contains(Int(event.keyCode)) else { return false }
+            state.isKeyboardActive = true
+        }
 
         let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         let command = flags.contains(.command)

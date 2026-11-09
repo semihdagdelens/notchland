@@ -21,7 +21,7 @@ swift scripts/make-icon.swift icon.png   # ikonu 1024px çizer; ardından iconse
 - `main.swift` → `AppDelegate`: uygulamayı `.accessory` olarak başlatır, menü çubuğu simgesini ve `NotchWindowController`'ı kurar.
 - Uygulamanın eski adı UstBar'dı (bundle id `com.best.ustbar`). `LegacyMigration` ilk açılışta eski ayarları ve `Application Support/UstBar` klasörünü taşır; `NotesService` Notlar'daki "UstBar" klasörünü yeniden adlandırır. Bu "UstBar" geçişlerini kaldırma.
 - `NotchWindowController.swift`: merkez. Tüm servisleri (medya, pil, takvim, pano, dikte…) burada oluşturur, `NotchView`'a enjekte eder, fare takibini, kısayolları ve HUD tetiklemelerini bağlar. Aynı dosyada:
-  - `NotchPanel`: saydam, etkinleştirmeyen `NSPanel`. Klavye odağı normalde öndeki uygulamada kalır (pano ⌘V'si oraya gitsin diye); yalnızca Notlar/Hesap makinesi sekmesinde veya klavyeyle gezinirken panel odak alır.
+  - `NotchPanel`: saydam, etkinleştirmeyen `NSPanel`. Notch açıkken (fareyle de) panel klavye odağını alır ki yön tuşları çalışsın; kapanınca odak öndeki uygulamaya döner. Panodan yapıştırırken odak önce bırakılır ki ⌘V öndeki uygulamaya gitsin.
   - `NotchState`: açık/kapalı, seçili sekme (`Tab`), HUD, sürükleme durumu.
 - `NotchView.swift`: çentik şekli ve boyutu (kapalı / HUD kulakları / canlı etkinlik / açık / dikte), sekme yönlendirmesi.
 - Servisler `@Observable final class`, görünümler SwiftUI `struct`. Servis–görünüm çifti genelde `XService`/`XStore` + `XView` adlandırmasıyla ayrı dosyalarda.
@@ -39,6 +39,7 @@ Bunlar bilerek kullanılıyor; değiştirirken kırılgan olduklarını unutma:
 - **Bildirim yansıtma** (`NotificationMirror`): Bildirim Merkezi sürecinin pencereleri Erişilebilirlik API'siyle okunur.
 - **Ses/parlaklık tuşları** (`MediaKeyTap`): `CGEventTap`, Erişilebilirlik izni ister; izin yoksa tuşlar sisteme bırakılır.
 - **Notlar** (`NotesService`): JXA (`osascript`) ile; Notlar'ın genel API'si yok.
+- **AI ajanları** (`AgentMonitor`): Claude Code'un belgelenmemiş `~/.claude/sessions/<pid>.json` dosyaları (`status`: `busy`/`waiting`/`idle`). Konuşma kayıtları ve `.key` dosyaları okunmaz; bunu koru.
 - **Ses dalgası**: `VisualizerEngine` kaynağı seçer → kayıtlı ritim (`RhythmRecording`, `~/Library/Application Support/Notchland/Ritimler/`) → yoksa `SystemAudioTap` (Core Audio process tap) ile dinleyip kaydetme → o da yoksa yapay dalga.
 
 Ağ: Open-Meteo (hava) ve LRCLIB (sözler), ikisi de anahtarsız; bir de kullanıcı çarkta dilim seçince yt-dlp ile video sitesinden indirme. Yeni bir dış servis eklemeden önce sor.
