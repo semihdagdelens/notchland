@@ -149,6 +149,7 @@ private struct TabRow: View {
         case .wrapped: $settings.showWrappedTab
         case .stats: $settings.showStatsTab
         case .agents: $settings.showAgentsTab
+        case .notifications: $settings.showNotificationsTab
         }
     }
 
@@ -228,7 +229,7 @@ private struct HUDSettings: View {
             } header: {
                 Text("Bildirimler")
             } footer: {
-                Text("Ekrana gelen bildirim balonu Erişilebilirlik izniyle okunur ve notch'tan kısa süre gösterilir. Balon gizlenirse sağ üstteki sistem balonu hemen kapatılır; bildirim Bildirim Merkezi'nden de kalkar. Yanıt/eylem düğmeli uyarılara dokunulmaz.")
+                Text("Ekrana gelen bildirim balonu Erişilebilirlik izniyle okunur ve notch'tan kısa süre gösterilir. Balon gizlenirse sağ üstteki sistem balonu hemen kapatılır; bildirim Bildirim Merkezi'nden de kalkar; geçmişi Bildirimler sekmesinde kalır. Yanıt/eylem düğmeli uyarılara dokunulmaz.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 

@@ -75,6 +75,7 @@ final class NotchWindowController {
     private let notes = NotesService()
     private let agents = AgentMonitor()
     private let notificationMirror = NotificationMirror()
+    private let notificationHistory = NotificationHistory()
     private let menuBar = MenuBarWatcher()
     private let hotKey = GlobalHotKey()
     private lazy var keyboard = KeyboardNavigator(state: state, media: media)
@@ -102,7 +103,7 @@ final class NotchWindowController {
             state: state, media: media, shelf: shelf, battery: battery, calendar: calendar, weather: weather,
             clipboard: clipboard, downloads: downloads, lyrics: lyrics, stats: stats,
             dictation: dictation, headphones: headphones,
-            reminders: reminders, notes: notes, agents: agents,
+            reminders: reminders, notes: notes, agents: agents, notificationHistory: notificationHistory,
             onDictationToggle: { [weak self] in self?.toggleDictation() }
         )
         panel.contentView = NSHostingView(rootView: root)
@@ -131,7 +132,9 @@ final class NotchWindowController {
         }
         headphones.start()
         notificationMirror.onNotice = { [weak self] notice in
-            guard let self, self.settings.mirrorNotifications, !self.state.isExpanded, !self.dictation.isActive else { return false }
+            guard let self, self.settings.mirrorNotifications else { return false }
+            self.notificationHistory.add(notice)
+            guard !self.state.isExpanded, !self.dictation.isActive else { return false }
             self.state.present(.notification(notice))
             return self.settings.hideSystemBanners
         }
@@ -623,6 +626,7 @@ final class NotchState {
         case wrapped
         case stats
         case agents
+        case notifications
 
         /// Ayarlardaki sıra; sonradan eklenen sekmeler kayıtlı sıranın sonuna düşer.
         static var ordered: [Tab] {
@@ -642,6 +646,7 @@ final class NotchState {
             case .wrapped: "Dinleme özeti (Wrapped)"
             case .stats: "Sistem istatistikleri"
             case .agents: "AI ajanları"
+            case .notifications: "Bildirim geçmişi"
             }
         }
 
@@ -657,6 +662,7 @@ final class NotchState {
             case .wrapped: "sparkles"
             case .stats: "gauge.with.dots.needle.50percent"
             case .agents: "terminal.fill"
+            case .notifications: "bell.fill"
             }
         }
     }
@@ -716,6 +722,7 @@ final class NotchState {
         case .shelf: return settings.showShelfTab
         case .downloads: return settings.showDownloadsTab
         case .agents: return settings.showAgentsTab
+        case .notifications: return settings.showNotificationsTab
         }
     }
 

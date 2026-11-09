@@ -119,6 +119,9 @@ final class AppSettings {
     var showWrappedTab = AppSettings.value("showWrappedTab", true) { didSet { save("showWrappedTab", showWrappedTab) } }
     /// Niş olduğu ve sekme çubuğu zaten kalabalık olduğu için isteyene açılır.
     var showAgentsTab = AppSettings.value("showAgentsTab", false) { didSet { save("showAgentsTab", showAgentsTab) } }
+    var showNotificationsTab = AppSettings.value("showNotificationsTab", true) {
+        didSet { save("showNotificationsTab", showNotificationsTab) }
+    }
 
     // MARK: Göstergeler
 

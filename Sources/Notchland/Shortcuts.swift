@@ -2,9 +2,9 @@ import Carbon.HIToolbox
 import SwiftUI
 
 /// Sekmeleri ve araçları doğrudan açan genel kısayollar. Varsayılanları ⌃⌥ + Türkçe adının bir harfi:
-/// Ana sayfa, Pano, Raf, indiriLenler, Takvim, nOtlar, Hesap makinesi, Wrapped, İstatistik, aJanlar, Format, Kısayollar.
+/// Ana sayfa, Pano, Raf, indiriLenler, Takvim, nOtlar, Hesap makinesi, Wrapped, İstatistik, aJanlar, Bildirimler, Format, Kısayollar.
 enum AppShortcut: String, CaseIterable, Identifiable {
-    case home, clipboard, shelf, downloads, calendar, notes, calculator, wrapped, stats, agents, formatWheel, shortcuts
+    case home, clipboard, shelf, downloads, calendar, notes, calculator, wrapped, stats, agents, notifications, formatWheel, shortcuts
 
     var id: String { rawValue }
 
@@ -20,6 +20,7 @@ enum AppShortcut: String, CaseIterable, Identifiable {
         case .wrapped: "Dinleme özeti"
         case .stats: "Sistem"
         case .agents: "AI ajanları"
+        case .notifications: "Bildirimler"
         case .formatWheel: "Format çarkı"
         case .shortcuts: "Bu tablo"
         }
@@ -46,6 +47,7 @@ enum AppShortcut: String, CaseIterable, Identifiable {
         case .wrapped: .wrapped
         case .stats: .stats
         case .agents: .agents
+        case .notifications: .notifications
         case .formatWheel, .shortcuts: nil
         }
     }
@@ -62,6 +64,7 @@ enum AppShortcut: String, CaseIterable, Identifiable {
         case .wrapped: kVK_ANSI_W
         case .stats: kVK_ANSI_I
         case .agents: kVK_ANSI_J
+        case .notifications: kVK_ANSI_B
         case .formatWheel: kVK_ANSI_F
         case .shortcuts: kVK_ANSI_K
         }

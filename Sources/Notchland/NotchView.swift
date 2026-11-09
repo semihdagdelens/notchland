@@ -16,6 +16,7 @@ struct NotchView: View {
     let reminders: RemindersService
     let notes: NotesService
     let agents: AgentMonitor
+    let notificationHistory: NotificationHistory
     let onDictationToggle: () -> Void
 
     @State private var isDropTargeted = false
@@ -138,6 +139,8 @@ struct NotchView: View {
                                 ShelfView(state: state, shelf: shelf, isDropTargeted: isDropTargeted)
                             case .agents:
                                 AgentsView(state: state, agents: agents)
+                            case .notifications:
+                                NotificationHistoryView(state: state, history: notificationHistory)
                             }
                             }
                         }
