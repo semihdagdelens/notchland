@@ -21,11 +21,10 @@ final class NotchPanel: NSPanel {
         acceptsMouseMovedEvents = true
     }
 
-    /// Klavye odağı normalde öndeki uygulamada kalır (pano ⌘V'si oraya gitsin); yalnızca
-    /// yazı yazılabilen sekmede (notlar) bir metin alanına tıklanınca panel odak alır.
+    /// Notch açıkken panel odak alır ki yön tuşları çalışsın; kapanınca odak öndeki uygulamaya döner.
     var allowsKeyFocus: () -> Bool = { false }
 
-    /// Klavyeyle gezinirken odak, sekme değişse de panelde kalır.
+    /// Notch açık durdukça odak, sekme değişse de panelde kalır.
     var holdsKeyFocus: () -> Bool = { false }
 
     override var canBecomeKey: Bool { allowsKeyFocus() }
@@ -33,8 +32,9 @@ final class NotchPanel: NSPanel {
 
     /// Klavye odağını öndeki uygulamaya geri verir. Panel uygulamayı etkinleştirmediği için
     /// kısa bir an gizleyip göstermek, odağın etkin uygulamanın penceresine dönmesini sağlar.
-    static func releaseKeyFocus() {
-        for case let panel as NotchPanel in NSApp.windows where panel.isKeyWindow && !panel.holdsKeyFocus() {
+    /// `force`: notch açıkken de bırakır (yapıştırma ⌘V'si öndeki uygulamaya gitsin).
+    static func releaseKeyFocus(force: Bool = false) {
+        for case let panel as NotchPanel in NSApp.windows where panel.isKeyWindow && (force || !panel.holdsKeyFocus()) {
             panel.orderOut(nil)
             panel.orderFrontRegardless()
         }
@@ -106,12 +106,8 @@ final class NotchWindowController {
             onDictationToggle: { [weak self] in self?.toggleDictation() }
         )
         panel.contentView = NSHostingView(rootView: root)
-        panel.allowsKeyFocus = { [weak self] in
-            guard let self else { return false }
-            return self.state.isExpanded
-                && (self.state.isKeyboardActive || self.state.tab == .notes || self.state.tab == .calculator)
-        }
-        panel.holdsKeyFocus = { [weak self] in self?.state.isKeyboardActive ?? false }
+        panel.allowsKeyFocus = { [weak self] in self?.state.isExpanded ?? false }
+        panel.holdsKeyFocus = { [weak self] in self?.state.isExpanded ?? false }
         self.panel = panel
         reposition()
         panel.orderFrontRegardless()
@@ -548,13 +544,21 @@ final class NotchWindowController {
             guard pendingExpand == nil else { return }
             let work = DispatchWorkItem { [weak self] in
                 self?.pendingExpand = nil
-                self?.setExpanded(true)
+                self?.expandFromHover()
             }
             pendingExpand = work
             DispatchQueue.main.asyncAfter(deadline: .now() + settings.hoverDelay, execute: work)
             return
         }
-        setExpanded(inside)
+        if inside { expandFromHover() } else { setExpanded(false) }
+    }
+
+    /// Fareyle açılan notch da klavye odağını alır: yön tuşlarına basınca klavyeyle gezinme başlar.
+    /// Sürüklerken odak alınmaz; bırakma kaynağı uygulamada kalsın.
+    private func expandFromHover() {
+        setExpanded(true)
+        guard let panel, state.isExpanded, !state.isDraggingContent else { return }
+        panel.makeKeyAndOrderFront(nil)
     }
 
     /// `NSRect.contains` üst kenarı (maxY) dışarıda sayar; fare ekranın en üstüne dayanınca
@@ -585,7 +589,6 @@ final class NotchWindowController {
             state.isKeyboardActive = false
             state.showsShortcuts = false
             state.showsClothesline = false
-            NotchPanel.releaseKeyFocus()
         }
         // Açılış hafif sekerek, kapanış sekmeden ve biraz daha çabuk.
         let animation: Animation = expanded
@@ -595,6 +598,8 @@ final class NotchWindowController {
             state.isHovering = false
             state.isExpanded = expanded
         }
+        // `holdsKeyFocus` açıklığa bakar; odak ancak notch kapandı sayıldıktan sonra bırakılabilir.
+        if !expanded { NotchPanel.releaseKeyFocus() }
         panel.ignoresMouseEvents = !expanded
     }
 
