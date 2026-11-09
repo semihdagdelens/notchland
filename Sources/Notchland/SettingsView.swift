@@ -223,10 +223,12 @@ private struct HUDSettings: View {
 
             Section {
                 Toggle("Bildirimleri notch'ta da göster", isOn: $settings.mirrorNotifications)
+                Toggle("Sistemin bildirim balonunu gizle", isOn: $settings.hideSystemBanners)
+                    .disabled(!settings.mirrorNotifications)
             } header: {
                 Text("Bildirimler")
             } footer: {
-                Text("Ekrana gelen bildirim balonu Erişilebilirlik izniyle okunur ve notch'tan kısa süre gösterilir. Sistemin kendi balonu yine çıkar.")
+                Text("Ekrana gelen bildirim balonu Erişilebilirlik izniyle okunur ve notch'tan kısa süre gösterilir. Balon gizlenirse sağ üstteki sistem balonu hemen kapatılır; bildirim Bildirim Merkezi'nden de kalkar. Yanıt/eylem düğmeli uyarılara dokunulmaz.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 

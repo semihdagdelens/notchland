@@ -15,7 +15,8 @@ final class NotificationMirror {
         let bundleID: String?
     }
 
-    var onNotice: ((Notice) -> Void)?
+    /// Bildirim notch'ta gösterildiyse ve sistem balonu kapatılmalıysa `true` döner.
+    var onNotice: ((Notice) -> Bool)?
 
     private static let centerBundleID = "com.apple.notificationcenterui"
 
@@ -83,13 +84,13 @@ final class NotificationMirror {
         guard observedPID != 0 else { return }
         let app = AXUIElementCreateApplication(observedPID)
         let windows = Self.elements(app, kAXWindowsAttribute)
-        var fresh: [Notice] = []
+        var fresh: [(notice: Notice, banner: AXUIElement)] = []
         for banner in windows.flatMap(Self.banners(in:)) {
             guard let notice = Self.notice(from: banner) else { continue }
             // Her balonun kendine özgü bir tanımlayıcısı (UUID) var; yoksa içerikten imza.
             let key = Self.string(banner, kAXIdentifierAttribute)
                 ?? [notice.appName ?? "", notice.title, notice.body].joined(separator: "\u{1F}")
-            if seen.insert(key).inserted { fresh.append(notice) }
+            if seen.insert(key).inserted { fresh.append((notice, banner)) }
         }
         if seen.count > 500 { seen.removeAll() }
         if UserDefaults.standard.bool(forKey: "debugNotificationAX") {
@@ -102,11 +103,45 @@ final class NotificationMirror {
         }
         // Aynı anda birden fazla yeni bildirim görünmesi, kullanıcının Bildirim Merkezi'ni açıp
         // eski bildirimleri listelediği anlamına gelir; onlar yansıtılmaz.
-        guard fresh.count == 1 else { return }
+        guard fresh.count == 1, let (notice, banner) = fresh.first else { return }
         if UserDefaults.standard.bool(forKey: "debugNotificationAX") {
-            Self.debugLog.notice("yansıtıldı: \(fresh[0].appName ?? "-", privacy: .public) | \(fresh[0].title, privacy: .public) | \(fresh[0].body, privacy: .public)")
+            Self.debugLog.notice("yansıtıldı: \(notice.appName ?? "-", privacy: .public) | \(notice.title, privacy: .public) | \(notice.body, privacy: .public)")
         }
-        onNotice?(fresh[0])
+        if onNotice?(notice) == true { Self.dismiss(banner) }
+    }
+
+    /// Notch'ta gösterilen bildirimin sağ üstteki balonunu kapatır. Yalnızca düz balonlar;
+    /// yanıt/eylem düğmeli uyarılar (`…Alert`) kullanıcı yanıtlayana dek kalsın.
+    /// Balon, kapatma düğmesinin özel AX eylemiyle ("Name:Close…", Türkçede "Name:Kapat…") kapanır;
+    /// eylem bulunamazsa alt öğelerdeki kapatma düğmesine basılır.
+    private static func dismiss(_ banner: AXUIElement) {
+        guard string(banner, kAXSubroleAttribute)?.hasPrefix("AXNotificationCenterBanner") == true else { return }
+        let closeNames: Set<String> = ["close", "kapat"]
+        var actions: CFArray?
+        AXUIElementCopyActionNames(banner, &actions)
+        for action in (actions as? [String]) ?? [] {
+            // Biçim: "Name:Close\nTarget:0x0\nSelector:(null)"
+            let name = action.components(separatedBy: "\n").first?
+                .replacingOccurrences(of: "Name:", with: "").lowercased() ?? ""
+            if closeNames.contains(name) {
+                AXUIElementPerformAction(banner, action as CFString)
+                return
+            }
+        }
+        func findButton(_ element: AXUIElement, depth: Int) -> AXUIElement? {
+            guard depth < 6 else { return nil }
+            if string(element, kAXRoleAttribute) == kAXButtonRole {
+                let label = (string(element, kAXDescriptionAttribute) ?? string(element, kAXTitleAttribute) ?? "").lowercased()
+                if closeNames.contains(label) || string(element, kAXSubroleAttribute) == kAXCloseButtonSubrole { return element }
+            }
+            for child in elements(element, kAXChildrenAttribute) {
+                if let found = findButton(child, depth: depth + 1) { return found }
+            }
+            return nil
+        }
+        if let button = findButton(banner, depth: 0) {
+            AXUIElementPerformAction(button, kAXPressAction as CFString)
+        }
     }
 
     // MARK: - AX ağacı

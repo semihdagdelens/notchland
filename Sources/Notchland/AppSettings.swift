@@ -133,6 +133,10 @@ final class AppSettings {
     var mirrorNotifications = AppSettings.value("mirrorNotifications", true) {
         didSet { save("mirrorNotifications", mirrorNotifications) }
     }
+    /// Notch'ta gösterilen bildirimin sistem balonu (sağ üst) kapatılsın.
+    var hideSystemBanners = AppSettings.value("hideSystemBanners", true) {
+        didSet { save("hideSystemBanners", hideSystemBanners) }
+    }
 
     /// Bir AI ajanı işini bitirince veya kullanıcıyı bekleyince notch'ta göster.
     var agentAlerts = AppSettings.value("agentAlerts", true) { didSet { save("agentAlerts", agentAlerts) } }

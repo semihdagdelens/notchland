@@ -131,8 +131,9 @@ final class NotchWindowController {
         }
         headphones.start()
         notificationMirror.onNotice = { [weak self] notice in
-            guard let self, self.settings.mirrorNotifications, !self.state.isExpanded, !self.dictation.isActive else { return }
+            guard let self, self.settings.mirrorNotifications, !self.state.isExpanded, !self.dictation.isActive else { return false }
             self.state.present(.notification(notice))
+            return self.settings.hideSystemBanners
         }
         notificationMirror.start()
         agents.onNotice = { [weak self] notice in
