@@ -117,6 +117,8 @@ final class AppSettings {
     var showNotesTab = AppSettings.value("showNotesTab", true) { didSet { save("showNotesTab", showNotesTab) } }
     var showCalculatorTab = AppSettings.value("showCalculatorTab", true) { didSet { save("showCalculatorTab", showCalculatorTab) } }
     var showWrappedTab = AppSettings.value("showWrappedTab", true) { didSet { save("showWrappedTab", showWrappedTab) } }
+    /// Niş olduğu ve sekme çubuğu zaten kalabalık olduğu için isteyene açılır.
+    var showAgentsTab = AppSettings.value("showAgentsTab", false) { didSet { save("showAgentsTab", showAgentsTab) } }
 
     // MARK: Göstergeler
 
@@ -131,6 +133,9 @@ final class AppSettings {
     var mirrorNotifications = AppSettings.value("mirrorNotifications", true) {
         didSet { save("mirrorNotifications", mirrorNotifications) }
     }
+
+    /// Bir AI ajanı işini bitirince veya kullanıcıyı bekleyince notch'ta göster.
+    var agentAlerts = AppSettings.value("agentAlerts", true) { didSet { save("agentAlerts", agentAlerts) } }
 
     // MARK: Takvim ve hava
 

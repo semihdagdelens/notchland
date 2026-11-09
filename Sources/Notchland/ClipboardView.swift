@@ -318,9 +318,10 @@ struct ClipboardItemMenu: View {
 }
 
 extension NotchState {
-    /// Klavyeyle açıkken panel odaktadır; ⌘V öndeki uygulamaya gitsin diye önce notch kapanır.
+    /// Notch açıkken panel odaktadır; ⌘V öndeki uygulamaya gitsin diye klavye modunda notch kapanır,
+    /// fareyle açıksa yalnızca odak bırakılır.
     func paste(_ item: ClipboardStore.Item, using clipboard: ClipboardStore) {
-        if isKeyboardActive { onClose?() }
+        if isKeyboardActive { onClose?() } else { NotchPanel.releaseKeyFocus(force: true) }
         clipboard.copy(item, paste: true)
     }
 }

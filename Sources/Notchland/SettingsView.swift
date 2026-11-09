@@ -148,6 +148,7 @@ private struct TabRow: View {
         case .calculator: $settings.showCalculatorTab
         case .wrapped: $settings.showWrappedTab
         case .stats: $settings.showStatsTab
+        case .agents: $settings.showAgentsTab
         }
     }
 
@@ -226,6 +227,16 @@ private struct HUDSettings: View {
                 Text("Bildirimler")
             } footer: {
                 Text("Ekrana gelen bildirim balonu Erişilebilirlik izniyle okunur ve notch'tan kısa süre gösterilir. Sistemin kendi balonu yine çıkar.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            Section {
+                Toggle("Ajan bitirince veya seni bekleyince göster", isOn: $settings.agentAlerts)
+                    .disabled(!settings.showAgentsTab)
+            } header: {
+                Text("AI ajanları")
+            } footer: {
+                Text("Genel ayarlarda “AI ajanları” sekmesi açıkken çalışır. Yalnızca 20 saniyeden uzun süren işlerin bitişi gösterilir. Claude Code konuşmaları okunmaz, yalnızca oturum durumu okunur.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }

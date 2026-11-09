@@ -39,6 +39,7 @@ Bunlar bilerek kullanılıyor; değiştirirken kırılgan olduklarını unutma:
 - **Bildirim yansıtma** (`NotificationMirror`): Bildirim Merkezi sürecinin pencereleri Erişilebilirlik API'siyle okunur.
 - **Ses/parlaklık tuşları** (`MediaKeyTap`): `CGEventTap`, Erişilebilirlik izni ister; izin yoksa tuşlar sisteme bırakılır.
 - **Notlar** (`NotesService`): JXA (`osascript`) ile; Notlar'ın genel API'si yok.
+- **AI ajanları** (`AgentMonitor`): Claude Code'un belgelenmemiş `~/.claude/sessions/<pid>.json` dosyaları (`status`: `busy`/`waiting`/`idle`). Konuşma kayıtları ve `.key` dosyaları okunmaz; bunu koru.
 - **Ses dalgası**: `VisualizerEngine` kaynağı seçer → kayıtlı ritim (`RhythmRecording`, `~/Library/Application Support/Notchland/Ritimler/`) → yoksa `SystemAudioTap` (Core Audio process tap) ile dinleyip kaydetme → o da yoksa yapay dalga.
 
 Ağ: Open-Meteo (hava) ve LRCLIB (sözler), ikisi de anahtarsız; bir de kullanıcı çarkta dilim seçince yt-dlp ile video sitesinden indirme. Yeni bir dış servis eklemeden önce sor.

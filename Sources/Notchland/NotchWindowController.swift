@@ -73,6 +73,7 @@ final class NotchWindowController {
     private let headphones = HeadphoneMonitor()
     private let reminders = RemindersService()
     private let notes = NotesService()
+    private let agents = AgentMonitor()
     private let notificationMirror = NotificationMirror()
     private let menuBar = MenuBarWatcher()
     private let hotKey = GlobalHotKey()
@@ -101,7 +102,7 @@ final class NotchWindowController {
             state: state, media: media, shelf: shelf, battery: battery, calendar: calendar, weather: weather,
             clipboard: clipboard, downloads: downloads, lyrics: lyrics, stats: stats,
             dictation: dictation, headphones: headphones,
-            reminders: reminders, notes: notes,
+            reminders: reminders, notes: notes, agents: agents,
             onDictationToggle: { [weak self] in self?.toggleDictation() }
         )
         panel.contentView = NSHostingView(rootView: root)
@@ -138,8 +139,22 @@ final class NotchWindowController {
             self.state.present(.notification(notice))
         }
         notificationMirror.start()
+        agents.onNotice = { [weak self] notice in
+            guard let self, self.settings.agentAlerts, !self.state.isExpanded, !self.dictation.isActive else { return }
+            self.state.present(.notification(notice))
+        }
+        observeAgentsTab()
         startMenuBarWatch()
         observePanelSize()
+    }
+
+    /// Ajanlar yalnızca sekme açıkken izlenir.
+    private func observeAgentsTab() {
+        agents.isEnabled = withObservationTracking {
+            settings.showAgentsTab
+        } onChange: { [weak self] in
+            DispatchQueue.main.async { self?.observeAgentsTab() }
+        }
     }
 
     // MARK: - Panel boyutu
@@ -601,6 +616,7 @@ final class NotchState {
         case calculator
         case wrapped
         case stats
+        case agents
 
         /// Ayarlardaki sıra; sonradan eklenen sekmeler kayıtlı sıranın sonuna düşer.
         static var ordered: [Tab] {
@@ -619,6 +635,7 @@ final class NotchState {
             case .calculator: "Hesap makinesi"
             case .wrapped: "Dinleme özeti (Wrapped)"
             case .stats: "Sistem istatistikleri"
+            case .agents: "AI ajanları"
             }
         }
 
@@ -633,6 +650,7 @@ final class NotchState {
             case .calculator: "plus.forwardslash.minus"
             case .wrapped: "sparkles"
             case .stats: "gauge.with.dots.needle.50percent"
+            case .agents: "terminal.fill"
             }
         }
     }
@@ -691,6 +709,7 @@ final class NotchState {
         case .wrapped: return settings.showWrappedTab
         case .shelf: return settings.showShelfTab
         case .downloads: return settings.showDownloadsTab
+        case .agents: return settings.showAgentsTab
         }
     }
 

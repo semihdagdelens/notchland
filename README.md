@@ -29,6 +29,7 @@ SwiftUI + AppKit ile yazılmıştır, macOS 14 veya üstü gerekir.
 - **Wrapped** — bugün, bu hafta, bu ay ve tüm zamanlarda ne kadar müzik dinlediğin; en çok dinlenen şarkılar ve sanatçılar, seri ve en çok dinlenen saat (yalnızca bu Mac'te tutulur)
 - **Raf** — çentiğe sürüklenen dosyalar için geçici raf; hepsini tek hareketle başka yere sürükleme veya kopyalama; AirDrop'a bırakma alanı
 - **İndirilenler** — son indirilen dosyalar önizlemeleriyle; tıkla aç, sürükle, rafa ekle
+- **AI ajanları** (Ayarlar'dan açılır) — Claude Code oturumlarının durumu (çalışıyor, seni bekliyor, boşta) ve iş bitince çentikte haber; tıklayınca oturumun uygulaması öne gelir. Cursor durum bilgisi bırakmadığı için yalnızca açık olup olmadığı görünür.
 
 **Diğer**
 - Kısayolla açılan Türkçe dikte (cihaz üzerinde tanıma); bitince metni öndeki uygulamaya yapıştırır
@@ -74,6 +75,7 @@ Her özellik yalnızca gerektiğinde izin ister:
 ## Veriler ve ağ
 
 - Yerel veriler `~/Library/Application Support/Notchland/` altında durur (pano geçmişi, raf, şarkı ritimleri, dinleme geçmişi).
+- AI ajanları sekmesi açıkken `~/.claude/sessions/` altındaki oturum durumu dosyaları okunur; konuşma kayıtlarına dokunulmaz, hiçbir şey dışarı gönderilmez.
 - Hava durumu için [Open-Meteo](https://open-meteo.com), şarkı sözleri için [LRCLIB](https://lrclib.net) kullanılır; ikisi de anahtar gerektirmez.
 
 ## Teşekkür
