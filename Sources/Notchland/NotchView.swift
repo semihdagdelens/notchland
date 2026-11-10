@@ -609,7 +609,7 @@ extension AnyTransition {
     }
 
     /// Açılışta şekil önce genişler, içerik biraz gecikmeyle bulanıklıktan netleşir;
-    /// kapanışta içerik şekilden önce hızla söner.
+    /// kapanışta içerik şekille birlikte notch'a doğru küçülerek söner.
     static var notchContent: AnyTransition {
         .asymmetric(
             insertion: .modifier(
@@ -617,11 +617,12 @@ extension AnyTransition {
                 identity: BlurFade(blur: 0, opacity: 1, scale: 1)
             )
             .animation(.spring(response: 0.42, dampingFraction: 0.86).delay(0.07)),
+            // Kapanışta içerik hemen sönmeye başlar ki küçülen şeklin kenarında kesilmiş görünmesin.
             removal: .modifier(
-                active: BlurFade(blur: 8, opacity: 0, scale: 0.95),
+                active: BlurFade(blur: 10, opacity: 0, scale: 0.88),
                 identity: BlurFade(blur: 0, opacity: 1, scale: 1)
             )
-            .animation(.easeOut(duration: 0.15))
+            .animation(.easeOut(duration: 0.2))
         )
     }
 }

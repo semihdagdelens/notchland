@@ -31,14 +31,42 @@ final class NotchPanel: NSPanel {
     override var canBecomeMain: Bool { false }
 
     /// Klavye odağını öndeki uygulamaya geri verir. Panel uygulamayı etkinleştirmediği için
-    /// kısa bir an gizleyip göstermek, odağın etkin uygulamanın penceresine dönmesini sağlar.
+    /// odaktaki pencerenin gizlenmesi, odağın etkin uygulamanın penceresine dönmesini sağlar.
+    /// Panelin kendisini gizleyip göstermek notch'u bir an söndürdüğünden, odak önce görünmez
+    /// bir pencereye aktarılır ve o gizlenir.
     /// `force`: notch açıkken de bırakır (yapıştırma ⌘V'si öndeki uygulamaya gitsin).
     static func releaseKeyFocus(force: Bool = false) {
         for case let panel as NotchPanel in NSApp.windows where panel.isKeyWindow && (force || !panel.holdsKeyFocus()) {
-            panel.orderOut(nil)
-            panel.orderFrontRegardless()
+            focusSink.setFrameOrigin(NSPoint(x: panel.frame.midX, y: panel.frame.maxY - 1))
+            focusSink.makeKeyAndOrderFront(nil)
+            focusSink.orderOut(nil)
         }
     }
+
+    private static let focusSink = FocusSinkPanel()
+}
+
+/// Odağı panelden almak için bir anlığına öne gelen, görünmez 1×1 pencere.
+private final class FocusSinkPanel: NSPanel {
+    init() {
+        super.init(
+            contentRect: NSRect(x: 0, y: 0, width: 1, height: 1),
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: true
+        )
+        isOpaque = false
+        backgroundColor = .clear
+        alphaValue = 0
+        hasShadow = false
+        ignoresMouseEvents = true
+        level = .statusBar
+        collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
+        isReleasedWhenClosed = false
+    }
+
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { false }
 }
 
 final class NotchWindowController {
@@ -594,16 +622,20 @@ final class NotchWindowController {
             state.showsShortcuts = false
             state.showsClothesline = false
         }
-        // Açılış hafif sekerek, kapanış sekmeden ve biraz daha çabuk.
+        // Açılış hafif sekerek; kapanış hiç taşmadan (kritik sönümle) yumuşakça küçülür.
         let animation: Animation = expanded
             ? .spring(response: 0.42, dampingFraction: 0.76)
-            : .spring(response: 0.36, dampingFraction: 0.95)
+            : .spring(response: 0.42, dampingFraction: 1)
         withAnimation(animation) {
             state.isHovering = false
             state.isExpanded = expanded
+        } completion: { [weak self] in
+            // Odağı bırakmak paneli bir an gizler; bu, süren kapanma animasyonunu kesip notch'u
+            // anında kapatıyordu. Bu yüzden küçülme bittikten sonra bırakılır. `holdsKeyFocus`
+            // açıklığa baktığından arada yeniden açılmışsa odak korunur.
+            guard !expanded, self?.state.isExpanded == false else { return }
+            NotchPanel.releaseKeyFocus()
         }
-        // `holdsKeyFocus` açıklığa bakar; odak ancak notch kapandı sayıldıktan sonra bırakılabilir.
-        if !expanded { NotchPanel.releaseKeyFocus() }
         panel.ignoresMouseEvents = !expanded
     }
 
