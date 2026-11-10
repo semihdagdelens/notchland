@@ -75,17 +75,18 @@ enum ArtworkPalette {
 }
 
 /// Notch şeklinin üstüne, yukarıdan aşağı solan kapak rengi katmanı. Renk değişince yumuşakça geçer.
-/// Açılışta şekil büyük ölçüde genişledikten sonra belirir; kapanışta şekil küçülmeden önce söner.
+/// Görünürlük, şekli açıp kapatan yayın kendisiyle ilerler: renk şekille birlikte gelir ve gider.
 struct ArtworkTint<S: Shape>: View {
     let color: NSColor?
     let isVisible: Bool
     let shape: S
 
     var body: some View {
+        // Burada ayrı bir `.animation` olmamalı: o, katmandaki şeklin yolunu da kendi zamanlamasıyla
+        // canlandırıyordu; renkli şekil siyah gövdeden önce büyüyüp önce küçülüyordu.
         colorLayer
-            .opacity(isVisible ? 1 : 0)
-            // Açılış yayı (~0.42 sn) yarılanınca renk gelmeye başlasın.
-            .animation(isVisible ? .easeOut(duration: 0.25).delay(0.1) : .easeOut(duration: 0.1), value: isVisible)
+            .modifier(OpennessFade(openness: isVisible ? 1 : 0, isOpening: isVisible))
+            .clipShape(shape)
             .allowsHitTesting(false)
     }
 
@@ -107,5 +108,37 @@ struct ArtworkTint<S: Shape>: View {
             }
         }
         .animation(.easeInOut(duration: 0.6), value: color)
+    }
+}
+
+/// Açılış yayının o anki ilerlemesine (0 kapalı, 1 açık) göre saydamlık ve bulanıklık.
+/// Ayrı bir zamanlayıcı yerine şeklin yayına bağlı olduğundan renk, şekille hiç kopmadan ilerler.
+/// - Açılışta renk, şekil büyük ölçüde açıldıktan sonra içerikle birlikte bulanıklıktan netleşir.
+/// - Kapanışta tam doygun kalıp notch'la birlikte küçülür, ancak sona doğru söner.
+struct OpennessFade: ViewModifier, Animatable {
+    var openness: Double
+    /// Hedef yön; canlandırılmaz, yalnızca hangi eğrinin kullanılacağını seçer.
+    var isOpening: Bool
+
+    var animatableData: Double {
+        get { openness }
+        set { openness = newValue }
+    }
+
+    /// 0…1 arasında görünürlük. Yay sekip 1'i aştığı için kırpılır.
+    private var visibility: Double {
+        let range: ClosedRange<Double> = isOpening ? 0.45...1 : 0...0.4
+        let t = min(max((openness - range.lowerBound) / (range.upperBound - range.lowerBound), 0), 1)
+        return t * t * (3 - 2 * t)
+    }
+
+    func body(content: Content) -> some View {
+        // Tamamen sönünce içerik kaldırılır ki görünmeyen ışığın saniyede 30 karelik çizimi sürmesin.
+        let visibility = visibility
+        if visibility > 0 {
+            content
+                .blur(radius: isOpening ? (1 - visibility) * 12 : 0)
+                .opacity(visibility)
+        }
     }
 }
