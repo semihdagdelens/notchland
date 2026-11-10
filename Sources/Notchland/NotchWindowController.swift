@@ -214,7 +214,8 @@ final class NotchWindowController {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: end)
     }
 
-    /// Sol kulağın sol kenarı (kıvrım ve küçük bir pay dahil); öndeki uygulamanın menüleri buraya taşarsa canlı etkinlik sağa geçer.
+    /// Sol kulağın sol kenarı (kıvrım ve küçük bir pay dahil); öndeki uygulamanın menüleri buraya taşarsa
+    /// kapalı notch'un ışığı menülerin üstüne binmesin diye gizlenir.
     private func startMenuBarWatch() {
         menuBar.notchMinX = { [weak self] in
             guard let self, let panel = self.panel else { return nil }
@@ -541,8 +542,6 @@ final class NotchWindowController {
         let mouse = NSEvent.mouseLocation
         let frame = panel.frame
         let activeSize: CGSize
-        /// Menüler kalabalıkken canlı etkinlik yalnızca sağa uzar; tetikleme alanı da onunla kayar.
-        var shift: CGFloat = 0
         if state.isExpanded {
             activeSize = Self.expandedSize
         } else if state.isDraggingContent {
@@ -551,11 +550,10 @@ final class NotchWindowController {
             // Kapalıyken notch'un biraz altına kadar tetikleme payı bırak; çalarken yanlardaki kapak ve dalga da dahil.
             let live = LiveActivity.isShown(state: state, media: media, isDictating: dictation.isActive)
             let ear = live ? LiveActivity.earWidth(notchHeight: state.closedSize.height) : 0
-            if state.isMenuBarCrowded { shift = ear }
             activeSize = CGSize(width: state.closedSize.width + ear * 2, height: state.closedSize.height + 6)
         }
         let activeRect = NSRect(
-            x: frame.midX - activeSize.width / 2 + shift,
+            x: frame.midX - activeSize.width / 2,
             y: frame.maxY - activeSize.height,
             width: activeSize.width,
             height: activeSize.height

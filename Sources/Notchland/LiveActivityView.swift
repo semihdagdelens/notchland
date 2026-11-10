@@ -30,27 +30,18 @@ struct LiveActivityView: View {
     let tint: NSColor?
     let notchWidth: CGFloat
     let notchHeight: CGFloat
-    /// Menüler notch'a dayanıyor: kapak da sağa, dalganın yanına geçer.
-    /// `leadingInset`, sola sabitlenen gövdenin notch'un içinden başladığı pay (kıvrım genişliği).
-    var rightOnly = false
-    var leadingInset: CGFloat = 0
 
     var body: some View {
         let ear = LiveActivity.earWidth(notchHeight: notchHeight)
         let artSide = max(notchHeight - 12, 16)
         HStack(spacing: 0) {
-            if rightOnly {
-                Color.clear.frame(width: notchWidth - leadingInset)
-            }
             artwork
                 .frame(width: artSide, height: artSide)
                 .clipShape(RoundedRectangle(cornerRadius: artSide * 0.28))
                 .frame(width: ear)
                 .id(track.title + track.artist)
                 .transition(.blurFade(scale: 0.8))
-            if !rightOnly {
-                Color.clear.frame(width: notchWidth)
-            }
+            Color.clear.frame(width: notchWidth)
             VisualizerBars(
                 track: track,
                 source: visualizer,
@@ -59,9 +50,6 @@ struct LiveActivityView: View {
             )
             .frame(width: artSide, height: artSide * 0.75)
             .frame(width: ear)
-            if rightOnly {
-                Color.clear.frame(width: leadingInset)
-            }
         }
         .frame(height: notchHeight)
         .animation(.easeInOut(duration: 0.3), value: track.title)

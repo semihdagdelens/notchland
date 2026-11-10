@@ -66,13 +66,6 @@ struct NotchView: View {
         LiveActivity.isShown(state: state, media: media, isDictating: dictation.isActive)
     }
 
-    /// Menüler notch'a dayanırken canlı etkinlik yalnızca sağa uzar: şeklin sol kenarı
-    /// (kıvrım dahil) notch'un sol kenarına oturacak kadar sağa kaydırılır.
-    private var rightOnlyShift: CGFloat {
-        guard showsLiveActivity, state.isMenuBarCrowded else { return 0 }
-        return (size.width - state.closedSize.width) / 2 + topRadius
-    }
-
     /// İçerik değiştiğinde (sekme, bırakma alanları) geçişi tetikleyen kimlik.
     private var contentID: String {
         if state.isDraggingContent && !state.isDraggingFromShelf { return "drop" }
@@ -102,8 +95,7 @@ struct NotchView: View {
                 } else if showsLiveActivity, let track = media.track {
                     LiveActivityView(
                         track: track, visualizer: media.visualizer, tint: media.artworkColor,
-                        notchWidth: state.closedSize.width, notchHeight: state.closedSize.height,
-                        rightOnly: state.isMenuBarCrowded, leadingInset: topRadius
+                        notchWidth: state.closedSize.width, notchHeight: state.closedSize.height
                     )
                     .transition(.blurFade(scale: 0.9))
                 }
@@ -192,7 +184,6 @@ struct NotchView: View {
                 state.tab = .shelf
                 return shelf.handleDrop(providers)
             }
-            .offset(x: rightOnlyShift)
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
